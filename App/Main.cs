@@ -1,77 +1,70 @@
 using App;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<TodoDb>(opt => opt.UseInMemoryDatabase("TodoList"));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-var app = builder.Build();
+internal class Program {
+    public static void Main(string[] args) {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        // builder.Services.AddDbContext<MessengerDb>(opt => opt.UseInMemoryDatabase("Messenger"));
+        // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-RouteGroupBuilder todoItems = app.MapGroup("/todoitems");
+        builder.Services.AddSingleton<ConcurrentMessengerCollection>();
+        WebApplication app = builder.Build();
+        
+        
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
 
-todoItems.MapGet("/", GetAllTodos);
-todoItems.MapGet("/complete", GetCompleteTodos);
-todoItems.MapGet("/{id:int}", GetTodo);
-todoItems.MapPost("/", CreateTodo);
-todoItems.MapPut("/{id:int}", UpdateTodo);
-todoItems.MapDelete("/{id:int}", DeleteTodo);
+        app.MapGet("/", () => Results.Redirect($"/messenger", permanent: false));
+        
+        RouteGroupBuilder numberAdder = app.MapGroup("/number_adder");
+        
+        numberAdder.MapGet("/{id:int}", (int id) => 
+            TypedResults.Ok(1000 - id));
 
-app.Run();
+        RouteGroupBuilder messenger = app.MapGroup("/messenger");
+        
+        messenger.MapGet("/all", GetAllMessages);
+        messenger.MapPost("/{id:int}", GetMessage);
+        messenger.MapPost("/", CreateMessage);
+        
+        app.Run();
 
-static async Task<IResult> GetAllTodos(TodoDb db)
-{
-    return TypedResults.Ok(await db.Todos.Select(x => new TodoItemDTO(x)).ToArrayAsync());
-}
-
-static async Task<IResult> GetCompleteTodos(TodoDb db) {
-    return TypedResults.Ok(await db.Todos.Where(t => t.IsComplete).Select(x => new TodoItemDTO(x)).ToListAsync());
-}
-
-static async Task<IResult> GetTodo(int id, TodoDb db)
-{
-    return await db.Todos.FindAsync(id)
-        is Todo todo
-            ? TypedResults.Ok(new TodoItemDTO(todo))
-            : TypedResults.NotFound();
-}
-
-static async Task<IResult> CreateTodo(TodoItemDTO todoItemDTO, TodoDb db)
-{
-    var todoItem = new Todo
-    {
-        IsComplete = todoItemDTO.IsComplete,
-        Name = todoItemDTO.Name
-    };
-
-    db.Todos.Add(todoItem);
-    await db.SaveChangesAsync();
-
-    todoItemDTO = new TodoItemDTO(todoItem);
-
-    return TypedResults.Created($"/todoitems/{todoItem.Id}", todoItemDTO);
-}
-
-static async Task<IResult> UpdateTodo(int id, TodoItemDTO todoItemDTO, TodoDb db)
-{
-    var todo = await db.Todos.FindAsync(id);
-
-    if (todo is null) return TypedResults.NotFound();
-
-    todo.Name = todoItemDTO.Name;
-    todo.IsComplete = todoItemDTO.IsComplete;
-
-    await db.SaveChangesAsync();
-
-    return TypedResults.NoContent();
-}
-
-static async Task<IResult> DeleteTodo(int id, TodoDb db)
-{
-    if (await db.Todos.FindAsync(id) is Todo todo)
-    {
-        db.Todos.Remove(todo);
-        await db.SaveChangesAsync();
-        return TypedResults.NoContent();
     }
 
-    return TypedResults.NotFound();
+    static StaticFileOptions GetFile(string pathFromContentRoot, WebApplicationBuilder builder) {
+        return new StaticFileOptions {
+            FileProvider = new PhysicalFileProvider(
+                Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "number_adder")
+            ),
+            RequestPath = ""
+        };
+    }
+    
+    static async Task<IResult> GetMessage(int id, ConcurrentMessengerCollection db) {
+        await db.AsyncNothing();
+        try {
+            var message = db.GetMessage(id);
+            return TypedResults.Ok(message);
+        }
+        catch (Exception) {
+            return TypedResults.NotFound();
+        }
+    }
+    
+    static async Task<IResult> GetAllMessages(ConcurrentMessengerCollection db) {
+        var messages = db.GetAllMessages();
+        await db.AsyncNothing();
+        return TypedResults.Ok(messages);
+    }
+
+    static async Task<IResult> CreateMessage(Message message, ConcurrentMessengerCollection db) {
+        
+        db.AddMessage(message);
+            
+        await db.AsyncNothing();
+
+        return TypedResults.Created($"/messages/{message.Id}", message);
+    }
+    
 }
