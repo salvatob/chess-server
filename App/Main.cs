@@ -4,11 +4,13 @@ using Microsoft.Extensions.FileProviders;
 
 internal class Program {
     public static void Main(string[] args) {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        // builder.Services.AddDbContext<MessengerDb>(opt => opt.UseInMemoryDatabase("Messenger"));
-        // builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+        
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions());
+        // builder.WebHost.UseUrls("http://0.0.0.0:5000");
+        
         builder.Services.AddSingleton<ConcurrentMessengerCollection>();
+        
         WebApplication app = builder.Build();
         
         
