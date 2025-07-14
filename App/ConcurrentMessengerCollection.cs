@@ -3,52 +3,64 @@ using System.Collections.Concurrent;
 namespace App;
 
 
-class ConcurrentMessengerCollection {
-  private List<Message> _messagesList = [];
-  private readonly object _syncLock = new();
-
-  public int Count {
-    get {
-      lock (_syncLock) 
-        return _messagesList.Count;
-    }
+sealed class ConcurrentMessengerCollection {
+  private ConcurrentDictionary<int, Message> _messagesList = [];
+  private class UniqueId {
+    private int _idSeed = 0;
+    public int Get() => _idSeed++;
   }
 
-  public Message this[int index] {
-    get {
-      lock (_syncLock) 
-        return _messagesList[index];
-    }
-    set {
-      lock (_syncLock) 
-        _messagesList[index] = value;
-    }
+  private readonly UniqueId _idCreator = new();
+  
+  private int GetUniqueId() => _idCreator.Get();
+
+  public int Count => _messagesList.Count;
+
+  public Message[] GetAllMessages() {
+    return _messagesList.Values.ToArray();
   }
   
-  public Message[] GetAllMessages() {
-    lock (_syncLock) {
-      return _messagesList.ToArray();
-    }
-  }
+  /// <summary>
+  /// Creates a message object and stores it.
+  /// </summary>
+  /// <param name="text">The message content.</param>
+  /// <param name="sender">Sender of the message.</param>
+  /// <returns>The ID value of the created message</returns>
+  public int AddNewMessage(string text, string sender="unknown") {
+    int msgID = GetUniqueId();
+    Message msg = new Message {
+      Body = text,
+      Id = msgID,
+      SenderName = sender,
+    };
 
-  public void AddMessage(Message message) {
-    lock (_syncLock) {
-      _messagesList.Add(message);
-    }
-  }
-
-  public Message? GetMessage(int messageId) {
-    lock (_syncLock) {
-      if (_messagesList[messageId].Id == messageId)
-        return _messagesList[messageId];
+    //TODO finish logic of id collision
+    
+    if (!_messagesList.TryAdd(msgID, msg)) {
       
-      return _messagesList.Find(m => m.Id == messageId);
     }
-  } 
 
+    return msgID;
+  }
+
+  // /// <inheritdoc cref="AddNewMessage(string,string)" select="summary" />
+  public int AddNewMessage(MessageDTO dto) => AddNewMessage(dto.Body, dto.Sender);
+  
+  public Message? GetMessage(int messageId) {
+    return _messagesList.GetValueOrDefault(messageId);
+  }
+
+  
+  
+  public IEnumerable<Message> GetLastNMessages(int lastNMessages) {
+    return _messagesList.Values.OrderDescending().Take(lastNMessages);
+  }
+  
+  
   public async Task AsyncNothing() {
     await Task.CompletedTask;
-    return;
   }
   
+  
 }
+

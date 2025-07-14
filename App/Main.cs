@@ -15,41 +15,30 @@ internal class Program {
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
-        app.MapGet("/", () => Results.Redirect($"/messenger", permanent: false));
+        app.MapGet("/", () => Results.Redirect($"/number_adder", permanent: false));
         
         RouteGroupBuilder numberAdder = app.MapGroup("/number_adder");
-        
-        numberAdder.MapGet("/{id:int}", (int id) => 
-            TypedResults.Ok(1000 - id));
+
+        numberAdder.MapGet("/{id:int}", (int id) => {
+                Console.WriteLine($"User has sent a number adder of int {id}");
+                return TypedResults.Ok(1000 - id);
+            }
+        );
 
         RouteGroupBuilder messenger = app.MapGroup("/messenger");
         
+        
         messenger.MapGet("/all", GetAllMessages);
-        messenger.MapPost("/{id:int}", GetMessage);
-        messenger.MapPost("/", CreateMessage);
+        messenger.MapPost("/new-message", PostNewMessage);
         
         app.Run();
 
     }
-
-    static StaticFileOptions GetFile(string pathFromContentRoot, WebApplicationBuilder builder) {
-        return new StaticFileOptions {
-            FileProvider = new PhysicalFileProvider(
-                Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "number_adder")
-            ),
-            RequestPath = ""
-        };
-    }
     
-    static async Task<IResult> GetMessage(int id, ConcurrentMessengerCollection db) {
-        await db.AsyncNothing();
-        try {
-            var message = db.GetMessage(id);
-            return TypedResults.Ok(message);
-        }
-        catch (Exception) {
-            return TypedResults.NotFound();
-        }
+    
+    static IResult PostNewMessage(MessageDTO messageDto, ConcurrentMessengerCollection db) {
+        int id = db.AddNewMessage(messageDto);
+        return TypedResults.Ok(id);
     }
     
     static async Task<IResult> GetAllMessages(ConcurrentMessengerCollection db) {
@@ -58,13 +47,13 @@ internal class Program {
         return TypedResults.Ok(messages);
     }
 
-    static async Task<IResult> CreateMessage(Message message, ConcurrentMessengerCollection db) {
-        
-        db.AddMessage(message);
-            
-        await db.AsyncNothing();
-
-        return TypedResults.Created($"/messages/{message.Id}", message);
-    }
+    // static async Task<IResult> CreateMessage(Message message, ConcurrentMessengerCollection db) {
+    //     
+    //     db.AddMessage(message);
+    //         
+    //     await db.AsyncNothing();
+    //
+    //     return TypedResults.Created($"/messages/{message.Id}", message);
+    // }
     
 }
