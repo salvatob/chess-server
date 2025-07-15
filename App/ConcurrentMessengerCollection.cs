@@ -44,7 +44,7 @@ sealed class ConcurrentMessengerCollection {
   }
 
   // /// <inheritdoc cref="AddNewMessage(string,string)" select="summary" />
-  public int AddNewMessage(MessageDTO dto) => AddNewMessage(dto.Body, dto.Sender);
+  public int AddNewMessage(MessageClientDTO serverDto) => AddNewMessage(serverDto.Body, serverDto.Sender);
   
   public Message? GetMessage(int messageId) {
     return _messagesList.GetValueOrDefault(messageId);

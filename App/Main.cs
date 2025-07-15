@@ -38,24 +38,15 @@ internal class Program {
     }
     
     
-    static IResult PostNewMessage(MessageDTO messageDto, ConcurrentMessengerCollection db) {
-        int id = db.AddNewMessage(messageDto);
+    static  IResult PostNewMessage(MessageClientDTO messageServerDto, ConcurrentMessengerCollection db) {
+        int id = db.AddNewMessage(messageServerDto);
+        // Console.WriteLine(db.GetMessage(id));
         return TypedResults.Ok(id);
     }
     
-    static async Task<IResult> GetAllMessages(ConcurrentMessengerCollection db) {
+    static IResult GetAllMessages(ConcurrentMessengerCollection db) {
         var messages = db.GetAllMessages();
-        await db.AsyncNothing();
-        return TypedResults.Ok(messages);
+        return TypedResults.Ok(messages.ToDto());
     }
-
-    // static async Task<IResult> CreateMessage(Message message, ConcurrentMessengerCollection db) {
-    //     
-    //     db.AddMessage(message);
-    //         
-    //     await db.AsyncNothing();
-    //
-    //     return TypedResults.Created($"/messages/{message.Id}", message);
-    // }
     
 }
