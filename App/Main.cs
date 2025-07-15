@@ -33,6 +33,17 @@ internal class Program {
         messenger.MapGet("/all", GetAllMessages);
         messenger.MapPost("/new-message", PostNewMessage);
         
+        messenger.MapGet("/last-messages/{count:int}", (int count, ConcurrentMessengerCollection db) => {
+            return TypedResults.Ok(db.GetLastNMessages(count).Select(m=>m.ToDto()));
+        });
+        
+        messenger.MapGet("messages/{id:int}", (int id, ConcurrentMessengerCollection db) => {
+            Message? message = db.GetMessage(id);
+            return message is not null
+                ? Results.Ok(message.ToDto())                   // 200 + JSON
+                : Results.NotFound($"Message {id} not found");  // 404 + plain text
+        });
+        
         app.Run();
 
     }

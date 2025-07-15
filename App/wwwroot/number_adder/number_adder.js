@@ -19,7 +19,8 @@ async function updateNumber() {
 
 const  getFetch = async (num) => {
     const numStringified = num.toString()
-    return fetch(requestUrl+("number_adder/"+numStringified))
+    console.log(`${typeof num} of value ${num}`)
+    return fetch(requestUrl+("number_adder/" + numStringified))
     .then(res => res.json())
     .then((data) => {
         if (typeof data !== "number") {
@@ -34,6 +35,4 @@ const  getFetch = async (num) => {
 
 async function RedirectToMessenger() {
     window.location.href = "../messenger/"
-    // const messengerUrl = "/messenger"
-    // fetch(messengerUrl).then()
 }

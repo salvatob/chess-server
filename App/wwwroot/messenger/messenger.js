@@ -1,23 +1,29 @@
-document.getElementById('sendButton').addEventListener('click', () => {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-    if (message) {
-        addMessageToWindow(message);
-        input.value = '';
-        // You can add your send request logic here
+document.getElementById('sendButton').addEventListener('click', sendMessage)
+document.getElementById('messageInput').addEventListener('keydown', async event => {
+    if (event.key === 'Enter') {
+        await sendMessage();
     }
 });
+async function sendMessage(){
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (message.length > 0) {
+        const id = await postMessage(message) // id is not needed in this case
+        input.value = '';
 
-function addMessageToWindow(messageText, sender = 'You') {
-    const messageWindow = document.getElementById('messageWindow');
-
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.textContent = `${sender}: ${messageText}`;
-
-    messageWindow.appendChild(messageDiv);
-    messageWindow.scrollTop = messageWindow.scrollHeight;
+        await updateMessages()
+    }    
 }
 
-// Example usage from server message:
-// addMessageToWindow('Hello from server!', 'Server');
+const globalMessagesArray = []
+
+
+
+async function updateMessages() {
+    const newMessages = await requestAllMessages()
+    globalMessagesArray.length = 0
+    newMessages.forEach(m => globalMessagesArray.push(m))
+    renderMessages(globalMessagesArray)
+}
+
+setInterval(updateMessages,1000)

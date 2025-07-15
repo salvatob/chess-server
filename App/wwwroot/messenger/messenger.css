@@ -51,3 +51,30 @@ body {
     font-size: 16px;
     cursor: pointer;
 }
+
+.message.self {
+    background-color: #dcf8c6;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message.other {
+    background-color: #f1f0f0;
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+.message {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin: 5px;
+    max-width: 70%;
+    clear: both;
+}
+
+.message-window {
+    display: flex;
+    flex-direction: column;
+}
+
