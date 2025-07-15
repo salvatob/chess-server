@@ -17,7 +17,7 @@ async function updateNumber() {
     }
 }
 
-const  getFetch = async (num) => {
+async function getFetch(num) {
     const numStringified = num.toString()
     console.log(`${typeof num} of value ${num}`)
     return fetch(requestUrl+("number_adder/" + numStringified))
@@ -34,5 +34,7 @@ const  getFetch = async (num) => {
 }
 
 async function RedirectToMessenger() {
-    window.location.href = "../messenger/"
+    window.location.href = "../messenger/landing"
 }
+
+localStorage.clear()

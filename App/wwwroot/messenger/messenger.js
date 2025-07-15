@@ -15,6 +15,7 @@ async function sendMessage(){
     }    
 }
 
+
 const globalMessagesArray = []
 
 
@@ -26,4 +27,4 @@ async function updateMessages() {
     renderMessages(globalMessagesArray)
 }
 
-setInterval(updateMessages,1000)
+let updateInterval = setInterval(updateMessages, 1000)

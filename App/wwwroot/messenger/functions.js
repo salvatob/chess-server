@@ -1,8 +1,13 @@
 class MessageDTO {
     constructor(messageBody) {
         this.Body = messageBody
-        this.Sender = "Default Sender Name"
+        name = localStorage.getItem("username")
+        if (!name) {
+            name = "Default Sender Name"
+        }
+        this.Sender = name
     }
+
 }
 
 
@@ -21,9 +26,8 @@ async function postMessage(text) {
         return;
     }
 
-    const result = await response.json();
-    console.log('Server response:', result);
-    return await result
+    // console.log('Server response:', result);
+    return await response.json()
 }
 
 
@@ -60,25 +64,32 @@ async function requestAllMessages() {
     }
     const DTOArray = await response.json()
     return DTOArray.map(raw => Message.fromJSON(raw))
-} 
-
+}
 function addMessageToWindow(messageObj) {
     const messageWindow = document.getElementById('messageWindow');
-
-    const messageDiv = document.createElement('div');
+    const messageDiv    = document.createElement('div');
+    const senderDiv     = document.createElement('div');
+    const textDiv       = document.createElement('div');
+    
+    const messageIsYours = localStorage.getItem("username") === messageObj.sender
+    // wrapper
     messageDiv.classList.add('message');
-    // if (messageObj.fromSelf) {
-    if (Math.random() > 0.5) {
-        messageDiv.classList.add('self');
-    } else {
-        messageDiv.classList.add('other');
-    }
-
-    messageDiv.textContent = messageObj.body;
+    messageDiv.classList.add(messageIsYours ? 'self' : 'other');
+    
+    // sender line
+    senderDiv.classList.add('sender');
+    senderDiv.textContent = messageObj.sender;
+    
+    // actual message text
+    textDiv.classList.add('text');
+    textDiv.textContent = messageObj.body;
+    
+    // assemble
+    messageDiv.appendChild(senderDiv);
+    messageDiv.appendChild(textDiv);
     messageWindow.appendChild(messageDiv);
     messageWindow.scrollTop = messageWindow.scrollHeight;
 }
-
 
 
 function renderMessages(messageArray) {

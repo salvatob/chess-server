@@ -1,8 +1,8 @@
 
 class Message {
-    constructor(messageBody, id) {
+    constructor(messageBody, sender, id) {
         this.body = messageBody
-        this.sender = "Default Sender Name"
+        this.sender = sender
         this.id = id
     }
     // Factory that takes any object, checks its fields, and returns a Message
