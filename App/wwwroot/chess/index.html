@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chessboard + Chess.js Demo</title>
+
+    <!-- chessboard.css from new chess subfolder -->
+    <link rel="stylesheet" href="/chess/lib/chessboardjs/css/chessboard-1.0.0.min.css" />
+
+    <!-- your CSS -->
+    <link rel="stylesheet" href="/chess/css/styles.css" />
+</head>
+<body>
+<main>
+    <h1>Chessboard.js + Chess.js (vendored in /chess)</h1>
+
+    <div class="container">
+        <div id="board" class="board"></div>
+
+        <aside class="sidebar">
+            <div id="status" class="status"></div>
+            <div class="controls">
+                <button id="resetBtn">Reset</button>
+                <button id="flipBtn">Flip</button>
+                <button id="undoBtn">Undo</button>
+            </div>
+            <div class="info">
+                <div><strong>FEN</strong></div>
+                <textarea id="fen" rows="2" readonly></textarea>
+                <div><strong>Moves</strong></div>
+                <div id="moves" class="moves"></div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<!-- vendor libs from chess subfolder (jQuery is only for chessboard.js internals) -->
+<script src="lib/jquery/jquery-3.7.1.min.js"></script>
+<script src="lib/chessboardjs/js/chessboard-1.0.0.min.js"></script>
+<script src="lib/chessjs/chess.min.js"></script>
+
+<!-- your app JS -->
+<script src="js/app.js"></script>
+</body>
+</html>

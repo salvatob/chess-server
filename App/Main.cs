@@ -7,7 +7,9 @@ internal class Program {
 
         
         WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions());
-        // builder.WebHost.UseUrls("http://0.0.0.0:5000");
+        builder.WebHost.UseUrls("http://0.0.0.0:5000");
+        // builder.WebHost.UseUrls("http://192.168.1.1:5000");
+        // builder.WebHost.UseUrls("http://192.168.1.226:5000");
         
         builder.Services.AddSingleton<ConcurrentMessengerCollection>();
         
@@ -17,7 +19,8 @@ internal class Program {
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
-        app.MapGet("/", () => Results.Redirect($"/number_adder", permanent: false));
+        app.MapGet("/", () => Results.Redirect($"/chess", permanent: false));
+        // app.MapGet("/", () => Results.Redirect($"/number_adder", permanent: false));
         
         RouteGroupBuilder numberAdder = app.MapGroup("/number_adder");
 

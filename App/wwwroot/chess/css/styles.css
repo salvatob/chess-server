@@ -1,0 +1,77 @@
+:root {
+    --bg: #f6f7fb;
+    --card: #fff;
+    --muted: #666;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin: 0;
+    padding: 20px;
+    background: var(--bg);
+    color: #222;
+}
+
+h1 {
+    text-align: center;
+    margin: 0 0 16px 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    align-items: flex-start;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.board {
+    width: 420px; /* chessboard size */
+    background: var(--card);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.sidebar {
+    width: 320px;
+    background: var(--card);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.controls button {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
+
+.status {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.info { font-size: 13px; color: var(--muted); }
+#fen {
+    width: 100%;
+    resize: none;
+    margin-bottom: 8px;
+    font-family: monospace;
+}
+.moves {
+    max-height: 140px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 13px;
+    color: #333;
+}
