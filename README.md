@@ -40,26 +40,6 @@ This project is a combined credit project for NPRG035 and NPRG038. It consists o
     ```
     The application will be available at `http://localhost:5000` by default.
 
-## 📁 Project Structure
-
-```text
-.
-├── App/
-│   ├── Main.cs                 # Application entry point & API routing
-│   ├── ChessAPI.cs              # Bridge between Web API and ChessBotCore
-│   ├── ChessCollection.cs       # Game state management
-│   ├── ConcurrentMessengerCollection.cs # Thread-safe message storage
-│   ├── wwwroot/                 # Static files (Frontend)
-│   │   ├── chess/               # Chess UI and logic
-│   │   ├── messenger/           # Messenger UI and logic
-│   │   └── number_adder/        # Demo utility
-│   ├── appsettings.json         # Configuration
-│   └── App.csproj               # Project dependencies
-├── WebApp.sln                   # Solution file
-├── global.json                  # SDK version pinning
-└── README.md                    # You are here
-```
-
 ## 📡 API Endpoints
 
 The backend uses Minimal APIs organized into several groups:
@@ -92,5 +72,3 @@ The backend uses Minimal APIs organized into several groups:
 This is a student project created for academic purposes.
 Existing vendor libraries (e.g., `chessboard.js`) carry their own respective licenses (see `wwwroot/chess/lib/chessboardjs/LICENSE.md`).
 
----
-*Created by [Tobias](https://github.com/tobia) - 2026*
