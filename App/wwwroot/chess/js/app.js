@@ -1,132 +1,197 @@
-// ChessGame: handles board + chess.js rules
+// chess-api.js
+
 class ChessGame {
-    constructor(boardElementId) {
+    constructor(boardElementId, fenElementId, movesElementId) {
         this.game = new Chess();
         this.board = Chessboard(boardElementId, {
             draggable: true,
             position: 'start',
             onDrop: this.onDrop.bind(this)
         });
+        this.fenElement = document.getElementById(fenElementId);
+        this.movesElement = document.getElementById(movesElementId);
+        this.updateStatus();
     }
 
-    onDrop(source, target) {
-        const move = this.game.move({ from: source, to: target, promotion: 'q' });
-        if (move === null) return 'snapback';
+    updateBoard() {
         this.board.position(this.game.fen());
+    }
+    
+    onDrop(source, target) {
+        let move = this.game.move({ from: source, to: target, promotion: 'q' });
+        if (move === null) return 'snapback';
+        // this.updateStatus();
+        updateUI()
+    }
+
+    undo() {
+        this.game.undo();
+        this.board.position(this.game.fen());
+        this.updateStatus();
     }
 
     reset() {
         this.game.reset();
         this.board.start();
+        this.updateStatus();
     }
 
     flip() {
         this.board.flip();
     }
 
-    move(from, to, promotion = 'q') {
-        const move = this.game.move({ from, to, promotion });
-        if (move) this.board.position(this.game.fen());
-        return move;
+    updateStatus() {
+        if (this.fenElement) this.fenElement.textContent = this.game.fen();
+        if (this.movesElement) this.movesElement.textContent = this.game.history().join(', ');
     }
 
-    getFen() {
-        return this.game.fen();
-    }
-
-    getMoves(options = {}) {
-        return this.game.moves(options);
-    }
-
-    getNextFens() {
-        const moves = this.game.moves({ verbose: true });
+    generateMovesWithFEN() {
+        let moves = this.game.moves({ verbose: true });
         return moves.map(m => {
-            const copy = new Chess(this.game.fen());
-            copy.move(m);
-            return copy.fen();
+            let tempGame = new Chess(this.game.fen());
+            tempGame.move(m.san);
+            return { move: m.san, fen: tempGame.fen() };
         });
     }
 }
 
-// ChessClock: manages two player clocks
 class ChessClock {
-    constructor(initialTimeMs = 5 * 60 * 1000, incrementMs = 2000) {
-        this.time = [initialTimeMs, initialTimeMs];
-        this.increment = incrementMs;
-        this.running = [false, false];
-        this.lastTick = null;
-        this.active = 0; // 0 = white, 1 = black
+    constructor(initialMs = 1000 * 60 * 5) {
+        this.whiteMs = initialMs;
+        this.blackMs = initialMs;
+        this.interval = null;
+        this.active = null;
     }
 
-    start(player) {
+    start(color) {
         this.stop();
-        this.active = player;
-        this.running[player] = true;
-        this.lastTick = Date.now();
+        const timeBetween = 100;
+        this.active = color;
+        this.interval = setInterval(() => {
+            if (this.active === 'white') this.whiteMs -= timeBetween;
+            if (this.active === 'black') this.blackMs -= timeBetween;
+        }, timeBetween);
     }
 
     stop() {
-        if (this.running[this.active]) {
-            this.update();
-            this.running[this.active] = false;
-        }
+        if (this.interval) clearInterval(this.interval);
+        this.interval = null;
+        this.active = null;
     }
 
-    switchTurn() {
-        this.stop();
-        this.time[this.active] += this.increment;
-        this.start(1 - this.active);
+    setTime(color, seconds) {
+        if (color === 'white') this.whiteMs = seconds;
+        if (color === 'black') this.blackMs = seconds;
     }
 
-    update() {
-        if (!this.running[this.active]) return;
-        const now = Date.now();
-        const diff = now - this.lastTick;
-        this.time[this.active] -= diff;
-        this.lastTick = now;
-    }
-
-    getTime(player) {
-        this.update();
-        return this.time[player];
-    }
-
-    setTime(player, ms) {
-        this.time[player] = ms;
+    getTimes() {
+        return { white: this.whiteMs, black: this.blackMs };
     }
 }
 
-// ChessAPI singleton
 class ChessAPIClass {
     constructor() {
-        this.game = new ChessGame('board');
+        this.game = new ChessGame('board', 'fen', 'moves');
         this.clock = new ChessClock();
-
-        // Connect UI buttons (if present)
-        const resetBtn = document.getElementById('resetBtn');
-        if (resetBtn) resetBtn.addEventListener('click', () => this.game.reset());
-
-        const flipBtn = document.getElementById('flipBtn');
-        if (flipBtn) flipBtn.addEventListener('click', () => this.game.flip());
+        this.id = null
+        this.requestId().catch(e => console.error(e))
+        document.getElementById('resetBtn').addEventListener('click', () => this.game.reset());
+        document.getElementById('flipBtn').addEventListener('click', () => this.game.flip());
+        document.getElementById('undoBtn').addEventListener('click', () => this.game.undo());
     }
 
-    // ChessGame methods
-    move(from, to, promotion) { return this.game.move(from, to, promotion); }
-    getFen() { return this.game.getFen(); }
-    getMoves(options) { return this.game.getMoves(options); }
-    getNextFens() { return this.game.getNextFens(); }
-
-    resetBoard() { return this.game.reset(); }
-    flipBoard() { return this.game.flip(); }
-
-    // ChessClock methods
-    startClock(player) { return this.clock.start(player); }
-    stopClock() { return this.clock.stop(); }
-    switchTurn() { return this.clock.switchTurn(); }
-    getTime(player) { return this.clock.getTime(player); }
-    setTime(player, ms) { return this.clock.setTime(player, ms); }
+    async requestId() {
+        this.id = await requestNewChessGame()
+    }
+    
+    makeMove(from, to, promotion = 'q') {
+        let move = this.game.game.move({ from, to, promotion });
+        if (move) this.game.updateBoard();
+        this.game.updateStatus();
+        // updateUI();
+        return move;
+    }
+    
+    getFEN() { return this.game.game.fen(); }
+    getMoves() { return this.game.game.history(); }
+    generateMovesWithFEN() { return this.game.generateMovesWithFEN(); }
+    
+    getMoveDTO() {
+        return new moveDTO(
+            this.id,
+            this.clock.whiteMs,
+            this.clock.blackMs,
+            this.getFEN()
+        )
+    }
+    
+    moveFromDTO(moveDTO) {
+        const possibleMoves = this.generateMovesWithFEN()
+        const moveSan = possibleMoves.find(m=>m.fen === moveDTO.stateAfter)
+        if (!moveSan) {
+            console.error("Move is unavailable")
+            return
+        }
+        
+        this.game.game.move(moveSan)
+        
+    }
 }
 
-// Singleton assignment
-theChessAPI = new ChessAPIClass();
-window.ChessAPI = theChessAPI;
+// Singleton instance
+const ChessAPI = new ChessAPIClass();
+window.ChessAPI = ChessAPI;
+// app.js
+
+
+// Initialize Chess API singleton
+const api = ChessAPI;
+
+// Update move list and FEN on each move
+function updateUI() {
+    const moves = api.getMoves();
+    const moveList = document.getElementById('moves');
+    // moveList.innerHTML = '';
+    moveList.innerHTML = moves.join(" ")
+    // moves.forEach((m, i) => {
+    //     const li = document.createElement('li');
+    //     li.textContent = `${i + 1}. ${m}`;
+    //     moveList.appendChild(li);
+    // });
+
+    document.getElementById('fen').textContent = api.getFEN();
+}
+
+// Wrap ChessGame methods to update UI automatically
+['makeMove','move','resetBoard','flipBoard','undo'].forEach(fn => {
+    const orig = api[fn];
+    api[fn] = function(...args){
+        const res = orig.apply(api, args);
+        updateUI();
+        return res;
+    };
+});
+
+
+// Render clocks in DOM every 250ms
+function renderClocks(){
+    const clock = api.clock;
+    
+    const whiteEl = document.getElementById('whiteClock');
+    const blackEl = document.getElementById('blackClock');
+    
+    if(whiteEl) whiteEl.textContent = formatMs(clock.whiteMs);
+    if(blackEl) blackEl.textContent = formatMs(clock.blackMs);
+}
+
+function formatMs(ms){
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+}
+
+setInterval(renderClocks, 250);
+
+// Initial render
+renderClocks();

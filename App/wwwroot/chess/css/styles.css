@@ -35,7 +35,7 @@ h1 {
 }
 
 .sidebar {
-    width: 320px;
+    width: 350px;
     background: var(--card);
     padding: 12px;
     border-radius: 8px;

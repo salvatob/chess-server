@@ -18,6 +18,12 @@
     <div class="container">
         <div id="board" class="board"></div>
 
+        <h2>Clocks</h2>
+        <div class="clocks" style="width: 100px;">
+            <div>White: <span id="whiteClock">05:00</span></div>
+            <div>Black: <span id="blackClock">05:00</span></div>
+        </div>
+        
         <aside class="sidebar">
             <div id="status" class="status"></div>
             <div class="controls">
@@ -41,8 +47,8 @@
 <script src="lib/chessjs/chess.min.js"></script>
 
 <!-- your app JS -->
+<script defer src="js/endpoints.js"></script>
 <script defer src="js/app.js"></script>
-<!--<script defer src="js/ui.js"></script>-->
 
 </body>
 </html>
