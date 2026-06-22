@@ -1,18 +1,12 @@
-# WebApp - Parallel Chess & Messenger
+# Chessbot Server
 
-A multi-functional web application built with ASP.NET Core 9.0, featuring a parallelized chess engine, a real-time messenger, and utility tools.
+A simple web application built with ASP.NET Core 9.0, meant to showcase the chess engine to the public.
 
-## 🚀 Overview
-
-This project is a combined credit project for NPRG035 and NPRG038. It consists of two main parts:
-1.  **Parallel Chess Engine (`ChessBotCore`):** A C# chess bot designed for efficiency using multi-threading and parallel search algorithms.
-2.  **Web Application:** A .NET Core Minimal API backend serving a frontend to play against the bot or communicate via a messenger.
 
 ## 🛠 Tech Stack
 
 -   **Backend:** C# 13, .NET 9.0, ASP.NET Core Minimal APIs
--   **Database:** Entity Framework Core (In-Memory provider)
--   **Frontend:** Vanilla HTML5, CSS3, JavaScript (ES6+)
+-   **Frontend:** HTML5, CSS3, JavaScript (ES6+)
 -   **Libraries:**
     -   `chessboard.js` (Chessboard UI)
     -   `chess.js` (Chess logic/validation)
@@ -40,6 +34,7 @@ This project is a combined credit project for NPRG035 and NPRG038. It consists o
     ```
     The application will be available at `http://localhost:5000` by default.
 
+
 ## 📡 API Endpoints
 
 The backend uses Minimal APIs organized into several groups:
@@ -47,12 +42,6 @@ The backend uses Minimal APIs organized into several groups:
 ### Chess (`/chess`)
 -   `GET /chess/new-game`: Initializes a new game session.
 -   `POST /chess/move`: Submits a move and receives the bot's response.
-
-### Messenger (`/messenger`)
--   `GET /messenger/all`: Retrieves all messages.
--   `POST /messenger/new-message`: Sends a new message.
--   `GET /messenger/last-messages/{count}`: Gets the N most recent messages.
--   `GET /messenger/messages/{id}`: Gets a specific message by ID.
 
 ### Number Adder (`/number_adder`)
 -   `GET /number_adder/{id}`: A simple demo endpoint.
@@ -65,7 +54,7 @@ The backend uses Minimal APIs organized into several groups:
 ## 🧪 Tests
 
 -   **TODO:** Automated tests for `ChessBotCore` and API endpoints are yet to be fully integrated into the main solution.
--   Manual verification: Use the UI at `/chess` or `/messenger`.
+-   Manual verification: Use the UI at `/chess`.
 
 ## 📝 License
 
