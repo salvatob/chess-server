@@ -1,6 +1,6 @@
 # Chessbot Server
 
-A simple web application built with ASP.NET Core 9.0, meant to showcase the chess engine to the public.
+A simple web application built with ASP.NET Core 9.0, meant to showcase [my chess engine project](https://github.com/salvatob/parallel-chess-bot) to the public.
 
 
 ## 🛠 Tech Stack
