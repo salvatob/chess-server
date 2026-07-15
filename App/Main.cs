@@ -31,24 +31,6 @@ internal class Program {
             }
         );
 
-        
-        RouteGroupBuilder messenger = app.MapGroup("/messenger");
-        
-        
-        messenger.MapGet("/all", GetAllMessages);
-        messenger.MapPost("/new-message", PostNewMessage);
-        
-        messenger.MapGet("/last-messages/{count:int}", (int count, ConcurrentMessengerCollection db) => {
-            return TypedResults.Ok(db.GetLastNMessages(count).Select(m=>m.ToDto()));
-        });
-        
-        messenger.MapGet("messages/{id:int}", (int id, ConcurrentMessengerCollection db) => {
-            Message? message = db.GetMessage(id);
-            return message is not null
-                ? Results.Ok(message.ToDto())
-                : Results.NotFound($"Message {id} not found");
-        });
-        
         RouteGroupBuilder chess = app.MapGroup("/chess");
         
         chess.MapGet("/new-game", RequestNewChessGame);
@@ -92,17 +74,6 @@ internal class Program {
 
         Console.WriteLine(moveDto.ToString());
         return TypedResults.Ok(nextDTO);
-    }
-    
-    static  IResult PostNewMessage(MessageClientDTO messageServerDto, ConcurrentMessengerCollection db) {
-        int id = db.AddNewMessage(messageServerDto);
-        // Console.WriteLine(db.GetMessage(id));
-        return TypedResults.Ok(id);
-    }
-    
-    static IResult GetAllMessages(ConcurrentMessengerCollection db) {
-        var messages = db.GetAllMessages();
-        return TypedResults.Ok(messages.ToDto());
     }
     
 }
