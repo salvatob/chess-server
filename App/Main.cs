@@ -15,7 +15,8 @@ internal class Program {
         builder.Services.AddSingleton<ChessCollection>();
         
         WebApplication app = builder.Build();
-        
+
+        app.UseWebSockets();
         
         app.UseDefaultFiles();
         app.UseStaticFiles();
