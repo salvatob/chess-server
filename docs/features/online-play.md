@@ -132,6 +132,9 @@ It owns:
 - Receiving messages from the client.
 - Sending game events to the client.
 
+The socket player uses a [simple, custom protocol](../protocols/chess-socket-protocol.md) 
+for bidirectional communication between the client and the server. 
+
 The SocketPlayer translates between:
 
 ```
