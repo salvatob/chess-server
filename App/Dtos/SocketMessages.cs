@@ -7,20 +7,23 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
 [JsonDerivedType(typeof(EndGameDto), "EndGame")]
 [JsonDerivedType(typeof(MoveDto), "Move")]
-public abstract class SocketMessage { }
+public abstract class SocketMessage;
 
 public class StartGameDto : SocketMessage {
-    public string Color { get; set; } = string.Empty;
-    public string InitialFen { get; set; } = string.Empty;
+    public string Color { get; set; } = "";
+    public string InitialFen { get; set; } = "";
 }
 
-public class RequestMoveDto : SocketMessage { }
+public class RequestMoveDto : SocketMessage {
+    public string State { get; set; } = "";
+    public string Timers { get; set; } = "";
+}
 
 public class EndGameDto : SocketMessage {
-    public string Result { get; set; } = string.Empty;
+    public string Result { get; set; } = "";
     public string? Reason { get; set; }
 }
 
 public class MoveDto : SocketMessage {
-    public string Move { get; set; } = string.Empty;
+    public string Move { get; set; } = "";
 }
