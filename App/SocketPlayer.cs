@@ -66,4 +66,8 @@ public class SocketPlayer : IPlayer {
             }
         }
     }
+
+    public void Dispose() {
+        _socket.Dispose();
+    }
 }
