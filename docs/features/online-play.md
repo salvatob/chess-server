@@ -16,13 +16,13 @@ The feature consists of three main parts:
 
 # Progress
 
-| Component | Status |
-|---|---|
-| GameManager implementation | Not started |
-| SocketPlayer implementation | Not started |
-| WebSocket initiation endpoint | Not started |
-| Integration with Game loop | Not started |
-| Testing and validation | Not started |
+| Component | Status             |
+|---|--------------------|
+| GameManager implementation | Not started        |
+| SocketPlayer implementation | First version done |
+| WebSocket initiation endpoint | Not started        |
+| Integration with Game loop | Not started        |
+| Testing and validation | Not started        |
 
 ---
 
@@ -257,9 +257,9 @@ Tasks:
 
 Tasks:
 
-- [ ] Create WebSocket-backed `IPlayer`.
-- [ ] Implement receiving moves.
-- [ ] Implement sending game events.
+- [X] Create WebSocket-backed `IPlayer`.
+- [X] Implement receiving moves.
+- [X] Implement sending game events.
 - [ ] Handle connection closing.
 
 ---
