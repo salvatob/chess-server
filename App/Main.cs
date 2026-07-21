@@ -33,9 +33,7 @@ internal class Program {
 
         RouteGroupBuilder chess = app.MapGroup("/chess");
 
-        chess.MapGet("/new-game", RequestNewChessGame);
-        chess.MapPost("/move", GetChessMove);
-
+       
         app.Run();
 
     }
