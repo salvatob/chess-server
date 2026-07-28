@@ -29,8 +29,10 @@ public class SocketPlayer : IPlayer {
                 Timers = timers.ToString()
             });
             
-            var moveDto = await WaitMessageAsync<MoveDto>(cts.Token);
-            var move = Move.Parse(moveDto.Move);
+            MoveDtoMessage moveDtoMessage = await WaitMessageAsync<MoveDtoMessage>(cts.Token);
+            MoveDTO moveDto = moveDtoMessage.Move;
+            Move move = Move.FindFullMove(moveDto, state);
+            
             return new SearchResults { BestMove = move };
         }, cts.Token);
 

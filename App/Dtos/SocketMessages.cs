@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ChessBotCore;
 
 namespace App.Dtos;
 
@@ -6,7 +7,7 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(StartGameDto), "StartGame")]
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
 [JsonDerivedType(typeof(EndGameDto), "EndGame")]
-[JsonDerivedType(typeof(MoveDto), "Move")]
+[JsonDerivedType(typeof(MoveDtoMessage), "Move")]
 public abstract class SocketMessage;
 
 public class StartGameDto : SocketMessage {
@@ -24,6 +25,6 @@ public class EndGameDto : SocketMessage {
     public string? Reason { get; set; }
 }
 
-public class MoveDto : SocketMessage {
-    public string Move { get; set; } = "";
+public class MoveDtoMessage : SocketMessage {
+    public MoveDTO Move { get; set; }
 }
