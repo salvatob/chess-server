@@ -1,0 +1,6 @@
+[*.cs]
+
+# Types that own disposable fields should be disposable
+dotnet_diagnostic.CA1001.severity = warning
+# Disposable fields should be disposed
+dotnet_diagnostic.CA2213.severity = warning
