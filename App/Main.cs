@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using System.Text.Json;
 using App;
 using Microsoft.EntityFrameworkCore;
@@ -33,8 +34,22 @@ internal class Program {
 
         RouteGroupBuilder chess = app.MapGroup("/chess");
 
-       
+
+        chess.MapGet("/ws/{id:int}", RegisterWebSocketAsync);
+
         app.Run();
 
+    }
+
+    private static async Task RegisterWebSocketAsync(int id, HttpContext context, ChessManager manager) {
+        if (context.WebSockets.IsWebSocketRequest) {
+            WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            // websocket ownership is transferred to the player
+            var wsPLayer = new SocketPlayer(webSocket);
+            manager.RegisterPlayer(id, wsPLayer, white: true);
+        }
+        else {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        }
     }
 }
