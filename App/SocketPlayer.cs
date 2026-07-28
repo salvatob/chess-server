@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using App.Dtos;
 using ChessBotCore;
+using ChessBotCore.Game;
 using ChessBotCore.Players;
 using ChessBotCore.Search;
 
@@ -15,7 +16,7 @@ public class SocketPlayer : IPlayer {
         _socket = socket;
     }
 
-    public SearchHandle GetBestMove(State state, Timers timers) {
+    public SearchHandle ChooseMoveAsync(State state, Timers timers) {
         // TODO no exception handling is really present here but it should
         var cts = new CancellationTokenSource();
 
@@ -33,19 +34,33 @@ public class SocketPlayer : IPlayer {
         return new SearchHandle(cts, task);
     }
 
-    public async Task StartGameAsync(string color, string fen) {
-        await SendMessageAsync(new StartGameDto {
-            Color = color,
-            InitialFen = fen
-        });
+    public Task OnGameStartAsync(bool yourColor, State state) {
+        throw new NotImplementedException();
+    }
+    public Task OnGameGameEndAsync(bool yourColor, GameResult result) {
+        throw new NotImplementedException();
     }
 
-    public async Task EndGameAsync(string result, string? reason = null) {
-        await SendMessageAsync(new EndGameDto {
-            Result = result,
-            Reason = reason
-        });
+    public Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
+        throw new NotImplementedException();
     }
+    public Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) {
+        throw new NotImplementedException();
+    }
+
+    // public async Task StartGameAsync(string color, string fen) {
+    //     await SendMessageAsync(new StartGameDto {
+    //         Color = color,
+    //         InitialFen = fen
+    //     });
+    // }
+    //
+    // public async Task EndGameAsync(string result, string? reason = null) {
+    //     await SendMessageAsync(new EndGameDto {
+    //         Result = result,
+    //         Reason = reason
+    //     });
+    // }
 
     private async Task SendMessageAsync(SocketMessage message) {
         if (_socket.State != WebSocketState.Open) return;
@@ -81,6 +96,13 @@ public class SocketPlayer : IPlayer {
             }
         }
         throw new InvalidOperationException("Socket closed while waiting for message.");
+    }
+
+    // public void Dispose() {
+    // }
+
+    public SearchHandle GetBestMove(State state, Timers timers) {
+        throw new NotImplementedException();
     }
 
     public void Dispose() {
