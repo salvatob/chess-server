@@ -9,7 +9,7 @@ class moveDTO {
 }
 
 async function requestNewChessGame() {
-    let newId = await fetch("/chess/new-game")
+    let newId = await fetch("/chess/games", { method: 'POST' })
     if (!newId.ok) {
         console.error('New game request has failed');
         return
