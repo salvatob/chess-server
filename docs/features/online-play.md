@@ -245,11 +245,11 @@ It should not:
 
 Tasks:
 
-- [ ] Create internal storage for active games.
-- [ ] Implement game creation.
-- [ ] Implement player registration.
-- [ ] Implement automatic game start.
-- [ ] Implement cleanup of completed games.
+- [X] Create internal storage for active games.
+- [X] Implement game creation.
+- [X] Implement player registration.
+- [X] Implement automatic game start.
+- [X] Implement cleanup of completed games.
 
 ---
 
@@ -260,7 +260,7 @@ Tasks:
 - [X] Create WebSocket-backed `IPlayer`.
 - [X] Implement receiving moves.
 - [X] Implement sending game events.
-- [ ] Handle connection closing.
+- [X] Handle connection closing.
 
 ---
 
@@ -270,7 +270,7 @@ Tasks:
 
 - [ ] Add HTTP endpoint for game creation.
 - [ ] Return game identifier/token.
-- [ ] Add WebSocket endpoint.
+- [X] Add WebSocket endpoint.
 - [ ] Validate incoming connections.
 - [ ] Create and register SocketPlayers.
 
