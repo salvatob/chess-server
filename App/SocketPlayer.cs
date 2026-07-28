@@ -12,6 +12,9 @@ namespace App;
 public class SocketPlayer : IPlayer {
     private readonly WebSocket _socket;
 
+    /// <summary>
+    /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket.
+    /// </summary>
     public SocketPlayer(WebSocket socket) {
         _socket = socket;
     }
