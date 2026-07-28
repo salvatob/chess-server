@@ -29,9 +29,9 @@ Communication is asynchronous.
 
 | Message | Description | Payload |
 |---------|-------------|---------|
-| `StartGame` | Indicates that a game has started. | Initial game information (e.g. player color, initial position, time controls). |
-| `RequestMove` | Requests the player's next move. | - |
-| `EndGame` | Indicates that the game has ended. | Game result and optional termination reason. |
+| `StartGame` | Indicates that a game has started. | `Color` (string), `InitialFen` (string), `WhiteTime` (TimeSpan), `BlackTime` (TimeSpan), `Increment` (TimeSpan) |
+| `RequestMove` | Requests the player's next move. | `Fen` (string), `WhiteTime` (TimeSpan), `BlackTime` (TimeSpan) |
+| `EndGame` | Indicates that the game has ended. | `Outcome` (int/enum), `Reason` (string?) |
 
 ---
 

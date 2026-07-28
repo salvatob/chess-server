@@ -25,11 +25,13 @@ public class SocketPlayer : IPlayer {
 
         var task = Task.Run(async () => {
             await SendMessageAsync(new RequestMoveDto {
-                State = state.ToString(),
-                Timers = timers.ToString()
+                Fen = state.GetFen(),
+                WhiteTime = timers.WhiteTime,
+                BlackTime = timers.BlackTime
             });
             
             MoveDtoMessage moveDtoMessage = await WaitMessageAsync<MoveDtoMessage>(cts.Token);
+            
             MoveDTO moveDto = moveDtoMessage.Move;
             Move move = Move.FindFullMove(moveDto, state);
             
@@ -39,11 +41,21 @@ public class SocketPlayer : IPlayer {
         return new SearchHandle(cts, task);
     }
 
-    public Task OnGameStartAsync(bool yourColor, State state) {
-        throw new NotImplementedException();
+    public async Task OnGameStartAsync(bool yourColor, State state) {
+        await SendMessageAsync(new StartGameDto {
+            Color = yourColor ? "white" : "black",
+            InitialFen = state.GetFen(),
+            WhiteTime = TimeSpan.FromMinutes(5),
+            BlackTime = TimeSpan.FromMinutes(5),
+            Increment = TimeSpan.FromSeconds(2)
+        });
     }
-    public Task OnGameGameEndAsync(bool yourColor, GameResult result) {
-        throw new NotImplementedException();
+
+    public async Task OnGameGameEndAsync(bool yourColor, GameResult result) {
+        await SendMessageAsync(new EndGameDto {
+            Result = result,
+            Reason = null
+        });
     }
 
     public Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
