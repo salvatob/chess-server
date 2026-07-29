@@ -9,40 +9,38 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
 [JsonDerivedType(typeof(EndGameDto), "EndGame")]
 [JsonDerivedType(typeof(MoveDtoMessage), "Move")]
-public abstract class SocketMessage;
+public abstract class IncomingSocketMessage;
+public abstract class OutgoingSocketMessage;
 
-public class StartGameDto : SocketMessage {
-    public string Color { get; set; } = "";
-    public string InitialFen { get; set; } = "";
-    public TimeSpan WhiteTime { get; set; }
-    public TimeSpan BlackTime { get; set; }
-    public TimeSpan Increment { get; set; }
-    public long WhiteTimeTotalMs => (long)WhiteTime.TotalMilliseconds;
-    public long BlackTimeTotalMs => (long)BlackTime.TotalMilliseconds;
-    public long IncrementTotalMs => (long)Increment.TotalMilliseconds;
+public class StartGameDto : OutgoingSocketMessage {
+    public required string Color { get; set; } = "";
+    public required string InitialFen { get; set; } = "";
+    public required long WhiteTimeMs { get; set; }
+    public required long BlackTimeMs { get; set; }
+    public required long IncrementMs { get; set; }
 }
 
-public class RequestMoveDto : SocketMessage {
-    public string Fen { get; set; } = "";
-    public TimeSpan WhiteTime { get; set; }
-    public TimeSpan BlackTime { get; set; }
-    public long WhiteTimeTotalMs => (long)WhiteTime.TotalMilliseconds;
-    public long BlackTimeTotalMs => (long)BlackTime.TotalMilliseconds;
+public class RequestMoveDto : OutgoingSocketMessage {
+    public required string Fen { get; set; }
+    public required long WhiteTimeMs { get; set; }
+    public required long BlackTimeMs { get; set; }
+
 }
 
-public class EndGameDto : SocketMessage {
-    public GameResult? Result { get; set; }
-    public string? Reason { get; set; }
+public class EndGameDto : OutgoingSocketMessage {
+    public required GameResult Result { get; set; }
+    public required string Reason { get; set; }
 }
 
-public class MoveDtoMessage : SocketMessage {
+public class MoveDtoMessage : IncomingSocketMessage {
     public MoveDTO? Move { get; set; }
 }
 
-public class CreateGameDto {
-    public long WhiteTimeMs { get; set; }
-    public long BlackTimeMs { get; set; }
-    public long IncrementMs { get; set; }
-    public string Opponent { get; set; } = "";
-    public string Side { get; set; } = "";
+// used for a different endpoint, that is why it isnt inheriting anything.
+public record class CreateGameDto {
+    public required long WhiteTimeMs { get; set; }
+    public required long BlackTimeMs { get; set; }
+    public required long IncrementMs { get; set; }
+    public required string Opponent { get; set; } = "";
+    public required string Side { get; set; } = "";
 }

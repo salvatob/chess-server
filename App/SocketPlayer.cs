@@ -26,8 +26,8 @@ public class SocketPlayer : IPlayer {
         var task = Task.Run(async () => {
             await SendMessageAsync(new RequestMoveDto {
                 Fen = state.GetFen(),
-                WhiteTime = timers.WhiteTime,
-                BlackTime = timers.BlackTime
+                WhiteTimeMs = timers.WhiteTimeMs,
+                BlackTimeMs = timers.BlackTimeMs
             });
             
             MoveDtoMessage moveDtoMessage = await WaitMessageAsync<MoveDtoMessage>(cts.Token);
@@ -45,9 +45,9 @@ public class SocketPlayer : IPlayer {
         await SendMessageAsync(new StartGameDto {
             Color = yourColor ? "white" : "black",
             InitialFen = state.GetFen(),
-            WhiteTime = timers.WhiteTime,
-            BlackTime = timers.BlackTime,
-            Increment = timers.Increment
+            WhiteTimeMs = timers.WhiteTimeMs,
+            BlackTimeMs = timers.BlackTimeMs,
+            IncrementMs = timers.IncrementMs
         });
     }
 
@@ -65,7 +65,7 @@ public class SocketPlayer : IPlayer {
         throw new NotImplementedException();
     }
 
-    private async Task SendMessageAsync(SocketMessage message) {
+    private async Task SendMessageAsync(OutgoingSocketMessage message) {
         if (_socket.State != WebSocketState.Open) return;
 
         byte[] buffer = JsonSerializer.SerializeToUtf8Bytes(message);
@@ -77,7 +77,7 @@ public class SocketPlayer : IPlayer {
         );
     }
 
-    private async Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : SocketMessage {
+    private async Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : IncomingSocketMessage {
         byte[] buffer = new byte[1024 * 4];
         while (_socket.State == WebSocketState.Open) {
             ct.ThrowIfCancellationRequested();
@@ -90,7 +90,7 @@ public class SocketPlayer : IPlayer {
 
             if (result.MessageType == WebSocketMessageType.Text) {
                 string json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                var message = JsonSerializer.Deserialize<SocketMessage>(json);
+                var message = JsonSerializer.Deserialize<IncomingSocketMessage>(json);
                 if (message is TMessage specificMessage) {
                     return specificMessage;
                 }
