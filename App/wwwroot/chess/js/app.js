@@ -16,6 +16,7 @@ let blackTimeMs = 0;
 let lastTick = Date.now();
 let activeColor = null;
 
+
 function formatTime(ms) {
     if (ms < 0) ms = 0;
     const totalSec = Math.floor(ms / 1000);
@@ -131,15 +132,15 @@ function initGame() {
         if (msg.type === 'StartGame') {
             game.load(msg.InitialFen);
             board.position(game.fen());
-            whiteTimeMs = msg.WhiteTimeTotalMs ?? parseTimeSpan(msg.WhiteTime);
-            blackTimeMs = msg.BlackTimeTotalMs ?? parseTimeSpan(msg.BlackTime);
+            whiteTimeMs = msg.WhiteTimeMs;
+            blackTimeMs = msg.BlackTimeMs;
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {
             game.load(msg.Fen);
             board.position(game.fen());
-            whiteTimeMs = msg.WhiteTimeTotalMs ?? parseTimeSpan(msg.WhiteTime);
-            blackTimeMs = msg.BlackTimeTotalMs ?? parseTimeSpan(msg.BlackTime);
+            whiteTimeMs = msg.WhiteTimeMs;
+            blackTimeMs = msg.BlackTimeMs;
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'EndGame') {
@@ -152,19 +153,6 @@ function initGame() {
         console.log('Socket closed');
         activeColor = null;
     };
-}
-
-function parseTimeSpan(ts) {
-    if (!ts) return 0;
-    // .NET TimeSpan format: "00:05:00" or "00:05:00.123"
-    const parts = ts.split(':');
-    const hours = parseInt(parts[0]);
-    const minutes = parseInt(parts[1]);
-    const secondsParts = parts[2].split('.');
-    const seconds = parseInt(secondsParts[0]);
-    const ms = secondsParts[1] ? parseInt(secondsParts[1].padEnd(3, '0').substring(0, 3)) : 0;
-    
-    return (((hours * 60 + minutes) * 60 + seconds) * 1000) + ms;
 }
 
 document.getElementById('resetBtn').addEventListener('click', () => {
