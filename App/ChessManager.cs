@@ -68,7 +68,13 @@ public class ChessManager {
 
     private async Task GameWorkerAsync() {
         await foreach (var game in _gameQueue.Reader.ReadAllAsync()) {
-            await game.Play(0);
+            try {
+                await game.Play();
+
+            }
+            catch (Exception e) {
+                Console.Error.WriteLine(e);
+            }
             game.Dispose();
         }
     } 
