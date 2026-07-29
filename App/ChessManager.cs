@@ -27,14 +27,20 @@ public class ChessManager {
     
     
     /// <summary>
-    /// Registers a game builder objec in internal storage. Returns the id to that builder.
+    /// Registers a game builder object in internal storage. Returns the id to that builder.
     /// </summary>
     /// <returns>The id number of the game created.</returns>
-    public int CreateGame() {
+    public int CreateGame(TimeSpan whiteTime, TimeSpan blackTime, TimeSpan increment) {
         int id = Interlocked.Increment(ref _idSeed);
         // We don't create the ChessGame yet, because we need players.
         // Or we could store a placeholder.
-        _gameBuilders[id] = new GameBuilder();
+        _gameBuilders[id] = new GameBuilder {
+            Timers = new Timers {
+                BaseWhiteTime = whiteTime,
+                BaseBlackTime = blackTime,
+                Increment = increment
+            }
+        };
         return id;
     }
     
