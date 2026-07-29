@@ -11,6 +11,7 @@ namespace App;
 
 public class SocketPlayer : IPlayer {
     private readonly WebSocket _socket;
+    private readonly TaskCompletionSource _socketClosedTcs = new();
 
     /// <summary>
     /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket.
@@ -18,6 +19,8 @@ public class SocketPlayer : IPlayer {
     public SocketPlayer(WebSocket socket) {
         _socket = socket;
     }
+
+    public Task WaitForCloseAsync() => _socketClosedTcs.Task;
 
     public SearchHandle ChooseMoveAsync(State state, Timers timers) {
         // TODO no exception handling is really present here but it should
@@ -56,13 +59,16 @@ public class SocketPlayer : IPlayer {
             Result = result,
             Reason = null
         });
+        _socketClosedTcs.TrySetResult();
     }
 
     public Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
-        throw new NotImplementedException();
+        if (gameEnd) _socketClosedTcs.TrySetResult();
+        return Task.CompletedTask;
     }
     public Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) {
-        throw new NotImplementedException();
+        if (gameEnd) _socketClosedTcs.TrySetResult();
+        return Task.CompletedTask;
     }
 
     private async Task SendMessageAsync(OutgoingSocketMessage message) {
@@ -79,12 +85,22 @@ public class SocketPlayer : IPlayer {
 
     private async Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : IncomingSocketMessage {
         byte[] buffer = new byte[1024 * 4];
-        while (_socket.State == WebSocketState.Open) {
+        while (_socket.State == WebSocketState.Open || _socket.State == WebSocketState.CloseSent) {
             ct.ThrowIfCancellationRequested();
 
-            WebSocketReceiveResult result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+            WebSocketReceiveResult result;
+            try {
+                result = await _socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+            } catch (WebSocketException) {
+                _socketClosedTcs.TrySetResult();
+                break;
+            }
+            
             if (result.MessageType == WebSocketMessageType.Close) {
-                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", ct);
+                if (_socket.State == WebSocketState.Open || _socket.State == WebSocketState.CloseReceived) {
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", ct);
+                }
+                _socketClosedTcs.TrySetResult();
                 throw new OperationCanceledException("Socket closed");
             }
 
@@ -94,10 +110,9 @@ public class SocketPlayer : IPlayer {
                 if (message is TMessage specificMessage) {
                     return specificMessage;
                 }
-                // TODO If it's not the message we're waiting for, we might want to log it or ignore it.
-                // For now, we continue waiting for the correct one.
             }
         }
+        _socketClosedTcs.TrySetResult();
         throw new InvalidOperationException("Socket closed while waiting for message.");
     }
 

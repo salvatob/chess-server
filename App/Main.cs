@@ -64,6 +64,9 @@ internal class Program {
             var wsPLayer = new SocketPlayer(webSocket);
             bool white = "white".Equals(side, StringComparison.OrdinalIgnoreCase);
             manager.RegisterPlayer(id, wsPLayer, white: white);
+
+            // Wait until the player signals the socket is closed or the game ends
+            await wsPLayer.WaitForCloseAsync();
         }
         else {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
