@@ -8,9 +8,11 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(StartGameDto), "StartGame")]
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
 [JsonDerivedType(typeof(EndGameDto), "EndGame")]
+public abstract class OutgoingSocketMessage;
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(MoveDtoMessage), "Move")]
 public abstract class IncomingSocketMessage;
-public abstract class OutgoingSocketMessage;
 
 public class StartGameDto : OutgoingSocketMessage {
     public required string Color { get; set; } = "";
