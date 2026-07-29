@@ -38,9 +38,9 @@ internal class Program {
 
         chess.MapPost("/create", (CreateGameDto dto, ChessManager manager) => {
             int id = manager.CreateGame(
-                TimeSpan.FromMinutes(dto.WhiteTimeMinutes),
-                TimeSpan.FromMinutes(dto.BlackTimeMinutes),
-                TimeSpan.FromSeconds(dto.IncrementSeconds));
+                TimeSpan.FromMilliseconds(dto.WhiteTimeMs),
+                TimeSpan.FromMilliseconds(dto.BlackTimeMs),
+                TimeSpan.FromMilliseconds(dto.IncrementMs));
             
             if (dto.Opponent.Equals("bot", StringComparison.OrdinalIgnoreCase)) {
                 bool playerIsWhite = dto.Side.Equals("white", StringComparison.OrdinalIgnoreCase);

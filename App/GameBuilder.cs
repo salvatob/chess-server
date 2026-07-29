@@ -10,7 +10,7 @@ public class GameBuilder {
     public bool WhiteIsSet => WhitePlayer != null;
     public bool BlackIsSet => BlackPlayer != null;
     public Timers Timers  { get; set; } =  new Timers();
-    public State State { private get; set; } = State.Initial;
+    public State State { get; set; } = State.Initial;
     
     public bool Ready => WhiteIsSet && BlackIsSet;
 

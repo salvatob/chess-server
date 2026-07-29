@@ -17,12 +17,17 @@ public class StartGameDto : SocketMessage {
     public TimeSpan WhiteTime { get; set; }
     public TimeSpan BlackTime { get; set; }
     public TimeSpan Increment { get; set; }
+    public long WhiteTimeTotalMs => (long)WhiteTime.TotalMilliseconds;
+    public long BlackTimeTotalMs => (long)BlackTime.TotalMilliseconds;
+    public long IncrementTotalMs => (long)Increment.TotalMilliseconds;
 }
 
 public class RequestMoveDto : SocketMessage {
     public string Fen { get; set; } = "";
     public TimeSpan WhiteTime { get; set; }
     public TimeSpan BlackTime { get; set; }
+    public long WhiteTimeTotalMs => (long)WhiteTime.TotalMilliseconds;
+    public long BlackTimeTotalMs => (long)BlackTime.TotalMilliseconds;
 }
 
 public class EndGameDto : SocketMessage {
@@ -35,9 +40,9 @@ public class MoveDtoMessage : SocketMessage {
 }
 
 public class CreateGameDto {
-    public double WhiteTimeMinutes { get; set; }
-    public double BlackTimeMinutes { get; set; }
-    public double IncrementSeconds { get; set; }
+    public long WhiteTimeMs { get; set; }
+    public long BlackTimeMs { get; set; }
+    public long IncrementMs { get; set; }
     public string Opponent { get; set; } = "";
     public string Side { get; set; } = "";
 }
