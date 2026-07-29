@@ -1,197 +1,178 @@
-// chess-api.js
 
-class ChessGame {
-    constructor(boardElementId, fenElementId, movesElementId) {
-        this.game = new Chess();
-        this.board = Chessboard(boardElementId, {
-            draggable: true,
-            position: 'start',
-            onDrop: this.onDrop.bind(this)
-        });
-        this.fenElement = document.getElementById(fenElementId);
-        this.movesElement = document.getElementById(movesElementId);
-        this.updateStatus();
-    }
+let game = new Chess();
+let board = null;
+let socket = null;
+let playerColor = 'white';
+let gameId = null;
 
-    updateBoard() {
-        this.board.position(this.game.fen());
-    }
-    
-    onDrop(source, target) {
-        let move = this.game.move({ from: source, to: target, promotion: 'q' });
-        if (move === null) return 'snapback';
-        // this.updateStatus();
-        updateUI()
-    }
+const whiteClockEl = document.getElementById('whiteClock');
+const blackClockEl = document.getElementById('blackClock');
+const statusEl = document.getElementById('status');
+const fenEl = document.getElementById('fen');
+const movesEl = document.getElementById('moves');
 
-    undo() {
-        this.game.undo();
-        this.board.position(this.game.fen());
-        this.updateStatus();
-    }
+let whiteTimeMs = 0;
+let blackTimeMs = 0;
+let lastTick = Date.now();
+let activeColor = null;
 
-    reset() {
-        this.game.reset();
-        this.board.start();
-        this.updateStatus();
-    }
-
-    flip() {
-        this.board.flip();
-    }
-
-    updateStatus() {
-        if (this.fenElement) this.fenElement.textContent = this.game.fen();
-        if (this.movesElement) this.movesElement.textContent = this.game.history().join(', ');
-    }
-
-    generateMovesWithFEN() {
-        let moves = this.game.moves({ verbose: true });
-        return moves.map(m => {
-            let tempGame = new Chess(this.game.fen());
-            tempGame.move(m.san);
-            return { move: m.san, fen: tempGame.fen() };
-        });
-    }
-}
-
-class ChessClock {
-    constructor(initialMs = 1000 * 60 * 5) {
-        this.whiteMs = initialMs;
-        this.blackMs = initialMs;
-        this.interval = null;
-        this.active = null;
-    }
-
-    start(color) {
-        this.stop();
-        const timeBetween = 100;
-        this.active = color;
-        this.interval = setInterval(() => {
-            if (this.active === 'white') this.whiteMs -= timeBetween;
-            if (this.active === 'black') this.blackMs -= timeBetween;
-        }, timeBetween);
-    }
-
-    stop() {
-        if (this.interval) clearInterval(this.interval);
-        this.interval = null;
-        this.active = null;
-    }
-
-    setTime(color, seconds) {
-        if (color === 'white') this.whiteMs = seconds;
-        if (color === 'black') this.blackMs = seconds;
-    }
-
-    getTimes() {
-        return { white: this.whiteMs, black: this.blackMs };
-    }
-}
-
-class ChessAPIClass {
-    constructor() {
-        this.game = new ChessGame('board', 'fen', 'moves');
-        this.clock = new ChessClock();
-        this.id = null
-        this.requestId().catch(e => console.error(e))
-        document.getElementById('resetBtn').addEventListener('click', () => this.game.reset());
-        document.getElementById('flipBtn').addEventListener('click', () => this.game.flip());
-        document.getElementById('undoBtn').addEventListener('click', () => this.game.undo());
-    }
-
-    async requestId() {
-        this.id = await requestNewChessGame()
-    }
-    
-    makeMove(from, to, promotion = 'q') {
-        let move = this.game.game.move({ from, to, promotion });
-        if (move) this.game.updateBoard();
-        this.game.updateStatus();
-        // updateUI();
-        return move;
-    }
-    
-    getFEN() { return this.game.game.fen(); }
-    getMoves() { return this.game.game.history(); }
-    generateMovesWithFEN() { return this.game.generateMovesWithFEN(); }
-    
-    getMoveDTO() {
-        return new moveDTO(
-            this.id,
-            this.clock.whiteMs,
-            this.clock.blackMs,
-            this.getFEN()
-        )
-    }
-    
-    moveFromDTO(moveDTO) {
-        const possibleMoves = this.generateMovesWithFEN()
-        const moveSan = possibleMoves.find(m=>m.fen === moveDTO.stateAfter)
-        if (!moveSan) {
-            console.error("Move is unavailable")
-            return
-        }
-        
-        this.game.game.move(moveSan)
-        
-    }
-}
-
-// Singleton instance
-const ChessAPI = new ChessAPIClass();
-window.ChessAPI = ChessAPI;
-// app.js
-
-
-// Initialize Chess API singleton
-const api = ChessAPI;
-
-// Update move list and FEN on each move
-function updateUI() {
-    const moves = api.getMoves();
-    const moveList = document.getElementById('moves');
-    // moveList.innerHTML = '';
-    moveList.innerHTML = moves.join(" ")
-    // moves.forEach((m, i) => {
-    //     const li = document.createElement('li');
-    //     li.textContent = `${i + 1}. ${m}`;
-    //     moveList.appendChild(li);
-    // });
-
-    document.getElementById('fen').textContent = api.getFEN();
-}
-
-// Wrap ChessGame methods to update UI automatically
-['makeMove','move','resetBoard','flipBoard','undo'].forEach(fn => {
-    const orig = api[fn];
-    api[fn] = function(...args){
-        const res = orig.apply(api, args);
-        updateUI();
-        return res;
-    };
-});
-
-
-// Render clocks in DOM every 250ms
-function renderClocks(){
-    const clock = api.clock;
-    
-    const whiteEl = document.getElementById('whiteClock');
-    const blackEl = document.getElementById('blackClock');
-    
-    if(whiteEl) whiteEl.textContent = formatMs(clock.whiteMs);
-    if(blackEl) blackEl.textContent = formatMs(clock.blackMs);
-}
-
-function formatMs(ms){
+function formatTime(ms) {
+    if (ms < 0) ms = 0;
     const totalSec = Math.floor(ms / 1000);
     const min = Math.floor(totalSec / 60);
     const sec = totalSec % 60;
-    return `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 }
 
-setInterval(renderClocks, 250);
+function updateClocks() {
+    const now = Date.now();
+    const delta = now - lastTick;
+    lastTick = now;
 
-// Initial render
-renderClocks();
+    if (activeColor === 'white') whiteTimeMs -= delta;
+    if (activeColor === 'black') blackTimeMs -= delta;
+
+    whiteClockEl.textContent = formatTime(whiteTimeMs);
+    blackClockEl.textContent = formatTime(blackTimeMs);
+}
+
+setInterval(updateClocks, 100);
+
+function onDragStart(source, piece, position, orientation) {
+    if (game.game_over()) return false;
+    if (activeColor !== playerColor) return false;
+    if ((playerColor === 'white' && piece.search(/^b/) !== -1) ||
+        (playerColor === 'black' && piece.search(/^w/) !== -1)) {
+        return false;
+    }
+}
+
+function onDrop(source, target) {
+    const move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
+    });
+
+    if (move === null) return 'snapback';
+
+    updateStatus();
+    sendMove(move);
+}
+
+function onSnapEnd() {
+    board.position(game.fen());
+}
+
+function updateStatus() {
+    let status = '';
+
+    let moveColor = 'White';
+    if (game.turn() === 'b') {
+        moveColor = 'Black';
+    }
+
+    if (game.in_checkmate()) {
+        status = 'Game over, ' + moveColor + ' is in checkmate.';
+    } else if (game.in_draw()) {
+        status = 'Game over, drawn position';
+    } else {
+        status = moveColor + ' to move';
+        if (game.in_check()) {
+            status += ', ' + moveColor + ' is in check';
+        }
+    }
+
+    statusEl.textContent = status;
+    fenEl.textContent = game.fen();
+    movesEl.textContent = game.history().join(' ');
+}
+
+function sendMove(move) {
+    const moveMsg = {
+        type: 'Move',
+        Move: {
+            From: move.from,
+            To: move.to,
+            Promotion: move.promotion ? move.promotion : null,
+            StateAfter: game.fen()
+        }
+    };
+    socket.send(JSON.stringify(moveMsg));
+}
+
+function initGame() {
+    const urlParams = new URLSearchParams(window.location.search);
+    gameId = urlParams.get('id');
+    playerColor = urlParams.get('side') || 'white';
+
+    if (!gameId) {
+        window.location.href = '/chess/selection.html';
+        return;
+    }
+
+    board = Chessboard('board', {
+        draggable: true,
+        position: 'start',
+        orientation: playerColor,
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd
+    });
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/chess/ws/${gameId}?side=${playerColor}`;
+    socket = new WebSocket(wsUrl);
+
+    socket.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        console.log('Received:', msg);
+
+        if (msg.type === 'StartGame') {
+            game.load(msg.InitialFen);
+            board.position(game.fen());
+            whiteTimeMs = parseTimeSpan(msg.WhiteTime);
+            blackTimeMs = parseTimeSpan(msg.BlackTime);
+            activeColor = game.turn() === 'w' ? 'white' : 'black';
+            updateStatus();
+        } else if (msg.type === 'RequestMove') {
+            game.load(msg.Fen);
+            board.position(game.fen());
+            whiteTimeMs = parseTimeSpan(msg.WhiteTime);
+            blackTimeMs = parseTimeSpan(msg.BlackTime);
+            activeColor = game.turn() === 'w' ? 'white' : 'black';
+            updateStatus();
+        } else if (msg.type === 'EndGame') {
+            activeColor = null;
+            alert(`Game Over: ${msg.Result} ${msg.Reason || ''}`);
+        }
+    };
+
+    socket.onclose = () => {
+        console.log('Socket closed');
+        activeColor = null;
+    };
+}
+
+function parseTimeSpan(ts) {
+    if (!ts) return 0;
+    // .NET TimeSpan format: "00:05:00" or "00:05:00.123"
+    const parts = ts.split(':');
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+    const secondsParts = parts[2].split('.');
+    const seconds = parseInt(secondsParts[0]);
+    const ms = secondsParts[1] ? parseInt(secondsParts[1].padEnd(3, '0').substring(0, 3)) : 0;
+    
+    return (((hours * 60 + minutes) * 60 + seconds) * 1000) + ms;
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    window.location.href = '/chess/selection.html';
+});
+
+document.getElementById('flipBtn').addEventListener('click', () => {
+    board.flip();
+});
+
+initGame();
