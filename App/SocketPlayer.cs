@@ -74,7 +74,9 @@ public class SocketPlayer : IPlayer {
     private async Task SendMessageAsync(OutgoingSocketMessage message) {
         if (_socket.State != WebSocketState.Open) return;
 
-        byte[] buffer = JsonSerializer.SerializeToUtf8Bytes(message);
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = null };
+        byte[] buffer = JsonSerializer.SerializeToUtf8Bytes(message, options);
+        Console.WriteLine($"[DEBUG_LOG] Sending JSON: {Encoding.UTF8.GetString(buffer)}");
         await _socket.SendAsync(
             new ArraySegment<byte>(buffer),
             WebSocketMessageType.Text,
@@ -106,7 +108,12 @@ public class SocketPlayer : IPlayer {
 
             if (result.MessageType == WebSocketMessageType.Text) {
                 string json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                var message = JsonSerializer.Deserialize<IncomingSocketMessage>(json);
+                Console.WriteLine($"[DEBUG_LOG] Received JSON: {json}");
+                var options = new JsonSerializerOptions {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true
+                };
+                var message = JsonSerializer.Deserialize<IncomingSocketMessage>(json, options);
                 if (message is TMessage specificMessage) {
                     return specificMessage;
                 }
