@@ -34,8 +34,14 @@ public class EndGameDto : OutgoingSocketMessage {
     public required string Reason { get; set; }
 }
 
+public class IncomingMoveDto {
+    public string From { get; set; } = "";
+    public string To { get; set; } = "";
+    public char? Promotion { get; set; }
+}
+
 public class MoveDtoMessage : IncomingSocketMessage {
-    public MoveDTO? Move { get; set; }
+    public IncomingMoveDto? Move { get; set; }
 }
 
 // used for a different endpoint, that is why it isnt inheriting anything.

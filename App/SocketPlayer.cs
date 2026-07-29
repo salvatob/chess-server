@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using App.Dtos;
 using ChessBotCore;
+using ChessBotCore.Board;
 using ChessBotCore.Game;
 using ChessBotCore.Players;
 using ChessBotCore.Search;
@@ -35,8 +36,17 @@ public class SocketPlayer : IPlayer {
             
             MoveDtoMessage moveDtoMessage = await WaitMessageAsync<MoveDtoMessage>(cts.Token);
             
-            MoveDTO moveDto = moveDtoMessage.Move;
-            Move move = Move.FindFullMove(moveDto, state);
+            if (moveDtoMessage.Move == null)
+                throw new InvalidOperationException("Move data is missing from message.");
+
+            // Convert string coordinates (e.g., "e2") to 1D integers
+            int from = Coordinates.FromString(moveDtoMessage.Move.From).To1D();
+            int to = Coordinates.FromString(moveDtoMessage.Move.To).To1D();
+            
+            // Create the engine's expected MoveDTO
+            MoveDTO engineMoveDto = new MoveDTO(from, to, moveDtoMessage.Move.Promotion);
+            
+            Move move = Move.FindFullMove(engineMoveDto, state);
             
             return new SearchResults { BestMove = move };
         }, cts.Token);
