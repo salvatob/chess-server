@@ -44,7 +44,8 @@ internal class Program {
             
             if (dto.Opponent.Equals("bot", StringComparison.OrdinalIgnoreCase)) {
                 bool playerIsWhite = dto.Side.Equals("white", StringComparison.OrdinalIgnoreCase);
-                manager.RegisterPlayer(id, new ChessBotCore.Players.EnginePlayer(), !playerIsWhite);
+                manager.RegisterPlayer(id, new ChessBotCore.Players.RandomPlayer(), !playerIsWhite);
+                // manager.RegisterPlayer(id, new ChessBotCore.Players.EnginePlayer(), !playerIsWhite);
             }
             
             return TypedResults.Ok(new { Id = id });
