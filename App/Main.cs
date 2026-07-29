@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using System.Text.Json;
 using App;
+using App.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -35,18 +36,30 @@ internal class Program {
         RouteGroupBuilder chess = app.MapGroup("/chess");
 
 
+        chess.MapPost("/create", (CreateGameDto dto, ChessManager manager) => {
+            int id = manager.CreateGame(dto.WhiteTime, dto.BlackTime, dto.Increment);
+            
+            if (dto.Opponent.Equals("bot", StringComparison.OrdinalIgnoreCase)) {
+                bool playerIsWhite = dto.Side.Equals("white", StringComparison.OrdinalIgnoreCase);
+                manager.RegisterPlayer(id, new ChessBotCore.Players.EnginePlayer(), !playerIsWhite);
+            }
+            
+            return TypedResults.Ok(new { Id = id });
+        });
+
         chess.MapGet("/ws/{id:int}", RegisterWebSocketAsync);
 
         app.Run();
 
     }
 
-    private static async Task RegisterWebSocketAsync(int id, HttpContext context, ChessManager manager) {
+    private static async Task RegisterWebSocketAsync(int id, string side, HttpContext context, ChessManager manager) {
         if (context.WebSockets.IsWebSocketRequest) {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
             // websocket ownership is transferred to the player
             var wsPLayer = new SocketPlayer(webSocket);
-            manager.RegisterPlayer(id, wsPLayer, white: true);
+            bool white = side.Equals("white", StringComparison.OrdinalIgnoreCase);
+            manager.RegisterPlayer(id, wsPLayer, white: white);
         }
         else {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
