@@ -112,6 +112,7 @@ public class SocketPlayer : IPlayer {
                 }
             }
         }
+        // TODO maybe this should be called on Dispose instead
         _socketClosedTcs.TrySetResult();
         throw new InvalidOperationException("Socket closed while waiting for message.");
     }
