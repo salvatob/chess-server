@@ -63,12 +63,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="whiteTime">White Time (minutes):</label>
-                <input type="number" id="whiteTime" name="whiteTime" value="5" min="1">
+                <label for="whiteTime">White Time (seconds):</label>
+                <input type="number" id="whiteTime" name="whiteTime" value="300" min="1">
             </div>
             <div class="form-group">
-                <label for="blackTime">Black Time (minutes):</label>
-                <input type="number" id="blackTime" name="blackTime" value="5" min="1">
+                <label for="blackTime">Black Time (seconds):</label>
+                <input type="number" id="blackTime" name="blackTime" value="300" min="1">
             </div>
             <div class="form-group">
                 <label for="increment">Increment (seconds):</label>
@@ -85,9 +85,9 @@
             const data = {
                 side: formData.get('side'),
                 opponent: formData.get('opponent'),
-                whiteTimeMinutes: parseFloat(formData.get('whiteTime')),
-                blackTimeMinutes: parseFloat(formData.get('blackTime')),
-                incrementSeconds: parseFloat(formData.get('increment'))
+                whiteTimeMs: parseInt(formData.get('whiteTime')) * 1000,
+                blackTimeMs: parseInt(formData.get('blackTime')) * 1000,
+                incrementMs: parseInt(formData.get('increment')) * 1000
             };
 
             try {

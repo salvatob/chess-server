@@ -131,15 +131,15 @@ function initGame() {
         if (msg.type === 'StartGame') {
             game.load(msg.InitialFen);
             board.position(game.fen());
-            whiteTimeMs = parseTimeSpan(msg.WhiteTime);
-            blackTimeMs = parseTimeSpan(msg.BlackTime);
+            whiteTimeMs = msg.WhiteTimeTotalMs ?? parseTimeSpan(msg.WhiteTime);
+            blackTimeMs = msg.BlackTimeTotalMs ?? parseTimeSpan(msg.BlackTime);
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {
             game.load(msg.Fen);
             board.position(game.fen());
-            whiteTimeMs = parseTimeSpan(msg.WhiteTime);
-            blackTimeMs = parseTimeSpan(msg.BlackTime);
+            whiteTimeMs = msg.WhiteTimeTotalMs ?? parseTimeSpan(msg.WhiteTime);
+            blackTimeMs = msg.BlackTimeTotalMs ?? parseTimeSpan(msg.BlackTime);
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'EndGame') {
