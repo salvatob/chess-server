@@ -46,6 +46,13 @@ function onDragStart(source, piece, position, orientation) {
         (playerColor === 'black' && piece.search(/^w/) !== -1)) {
         return false;
     }
+    
+    // Check if it's actually the player's turn according to chess.js
+    const turn = game.turn();
+    if ((playerColor === 'white' && turn !== 'w') ||
+        (playerColor === 'black' && turn !== 'b')) {
+        return false;
+    }
 }
 
 function onDrop(source, target) {
@@ -59,6 +66,7 @@ function onDrop(source, target) {
 
     updateStatus();
     sendMove(move);
+    activeColor = game.turn() === 'w' ? 'white' : 'black';
 }
 
 function onSnapEnd() {
@@ -92,13 +100,14 @@ function updateStatus() {
 function sendMove(move) {
     const moveMsg = {
         type: 'Move',
-        Move: {
-            From: move.from,
-            To: move.to,
-            Promotion: move.promotion ? move.promotion : null,
-            StateAfter: game.fen()
+        move: {
+            from: move.from,
+            to: move.to,
+            promotion: move.promotion ? move.promotion : null,
+            stateAfter: game.fen()
         }
     };
+    console.log('Sending move:', moveMsg);
     socket.send(JSON.stringify(moveMsg));
 }
 
@@ -125,22 +134,27 @@ function initGame() {
     const wsUrl = `${protocol}//${window.location.host}/chess/ws/${gameId}?side=${playerColor}`;
     socket = new WebSocket(wsUrl);
 
+    socket.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
     socket.onmessage = (event) => {
+        console.log('Raw message data:', event.data);
         const msg = JSON.parse(event.data);
-        console.log('Received:', msg);
+        console.log('Parsed message:', msg);
 
         if (msg.type === 'StartGame') {
-            game.load(msg.InitialFen);
+            game.load(msg.InitialFen || msg.initialFen);
             board.position(game.fen());
-            whiteTimeMs = msg.WhiteTimeMs;
-            blackTimeMs = msg.BlackTimeMs;
+            whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
+            blackTimeMs = msg.BlackTimeMs || msg.blackTimeMs || 0;
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {
-            game.load(msg.Fen);
+            game.load(msg.Fen || msg.fen);
             board.position(game.fen());
-            whiteTimeMs = msg.WhiteTimeMs;
-            blackTimeMs = msg.BlackTimeMs;
+            whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
+            blackTimeMs = msg.BlackTimeMs || msg.blackTimeMs || 0;
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'EndGame') {
