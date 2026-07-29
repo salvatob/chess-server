@@ -11,15 +11,18 @@ namespace App;
 
 public class SocketPlayer : IPlayer {
     private readonly WebSocket _socket;
+    private Timers _timers = new();
 
     /// <summary>
     /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket.
     /// </summary>
-    public SocketPlayer(WebSocket socket) {
+    public SocketPlayer(WebSocket socket, Timers timers) {
         _socket = socket;
+        _timers = timers;
     }
 
     public SearchHandle ChooseMoveAsync(State state, Timers timers) {
+        _timers = timers;
         // TODO no exception handling is really present here but it should
         var cts = new CancellationTokenSource();
 
@@ -42,12 +45,16 @@ public class SocketPlayer : IPlayer {
     }
 
     public async Task OnGameStartAsync(bool yourColor, State state) {
+        // Timers might not be set yet if ChooseMoveAsync hasn't been called.
+        // But the game usually calls OnGameStartAsync first.
+        // However, ChessGame.cs doesn't seem to pass timers to OnGameStartAsync.
+        // I will keep it simple and send a message.
         await SendMessageAsync(new StartGameDto {
             Color = yourColor ? "white" : "black",
             InitialFen = state.GetFen(),
-            WhiteTime = TimeSpan.FromMinutes(5),
-            BlackTime = TimeSpan.FromMinutes(5),
-            Increment = TimeSpan.FromSeconds(2)
+            WhiteTime = _timers.WhiteTime,
+            BlackTime = _timers.BlackTime,
+            Increment = _timers.Increment
         });
     }
 

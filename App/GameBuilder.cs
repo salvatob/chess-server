@@ -9,7 +9,7 @@ public class GameBuilder {
     public IPlayer? BlackPlayer { private get; set; }
     public bool WhiteIsSet => WhitePlayer != null;
     public bool BlackIsSet => BlackPlayer != null;
-    public Timers Timers  { private get; set; } =  new Timers();
+    public Timers Timers  { get; set; } =  new Timers();
     public State State { private get; set; } = State.Initial;
     
     public bool Ready => WhiteIsSet && BlackIsSet;

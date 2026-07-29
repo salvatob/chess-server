@@ -38,10 +38,16 @@ public class ChessManager {
             Timers = new Timers {
                 BaseWhiteTime = whiteTime,
                 BaseBlackTime = blackTime,
-                Increment = increment
+                Increment = increment,
+                WhiteTime = whiteTime,
+                BlackTime = blackTime
             }
         };
         return id;
+    }
+
+    public Timers GetTimers(int builderId) {
+        return _gameBuilders.TryGetValue(builderId, out var builder) ? builder.Timers : new Timers();
     }
     
     

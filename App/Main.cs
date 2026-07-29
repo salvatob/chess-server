@@ -22,7 +22,7 @@ internal class Program {
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
-        app.MapGet("/", () => Results.Redirect($"/chess", permanent: false));
+        app.MapGet("/", () => Results.Redirect($"/chess/selection.html", permanent: false));
         // app.MapGet("/", () => Results.Redirect($"/number_adder", permanent: false));
 
         RouteGroupBuilder numberAdder = app.MapGroup("/number_adder");
@@ -37,7 +37,10 @@ internal class Program {
 
 
         chess.MapPost("/create", (CreateGameDto dto, ChessManager manager) => {
-            int id = manager.CreateGame(dto.WhiteTime, dto.BlackTime, dto.Increment);
+            int id = manager.CreateGame(
+                TimeSpan.FromMinutes(dto.WhiteTimeMinutes),
+                TimeSpan.FromMinutes(dto.BlackTimeMinutes),
+                TimeSpan.FromSeconds(dto.IncrementSeconds));
             
             if (dto.Opponent.Equals("bot", StringComparison.OrdinalIgnoreCase)) {
                 bool playerIsWhite = dto.Side.Equals("white", StringComparison.OrdinalIgnoreCase);
@@ -57,8 +60,9 @@ internal class Program {
         if (context.WebSockets.IsWebSocketRequest) {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
             // websocket ownership is transferred to the player
-            var wsPLayer = new SocketPlayer(webSocket);
-            bool white = side.Equals("white", StringComparison.OrdinalIgnoreCase);
+            var timers = manager.GetTimers(id);
+            var wsPLayer = new SocketPlayer(webSocket, timers);
+            bool white = "white".Equals(side, StringComparison.OrdinalIgnoreCase);
             manager.RegisterPlayer(id, wsPLayer, white: white);
         }
         else {

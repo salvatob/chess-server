@@ -35,9 +35,9 @@ public class MoveDtoMessage : SocketMessage {
 }
 
 public class CreateGameDto {
-    public TimeSpan WhiteTime { get; set; }
-    public TimeSpan BlackTime { get; set; }
-    public TimeSpan Increment { get; set; }
+    public double WhiteTimeMinutes { get; set; }
+    public double BlackTimeMinutes { get; set; }
+    public double IncrementSeconds { get; set; }
     public string Opponent { get; set; } = "";
     public string Side { get; set; } = "";
 }
