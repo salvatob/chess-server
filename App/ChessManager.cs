@@ -46,11 +46,6 @@ public class ChessManager {
         return id;
     }
 
-    public Timers GetTimers(int builderId) {
-        return _gameBuilders.TryGetValue(builderId, out var builder) ? builder.Timers : new Timers();
-    }
-    
-    
     public void RegisterPlayer(int builderId, IPlayer player, bool white) {
         var gameBuilder = _gameBuilders[builderId];
         if (white) 

@@ -60,8 +60,7 @@ internal class Program {
         if (context.WebSockets.IsWebSocketRequest) {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
             // websocket ownership is transferred to the player
-            var timers = manager.GetTimers(id);
-            var wsPLayer = new SocketPlayer(webSocket, timers);
+            var wsPLayer = new SocketPlayer(webSocket);
             bool white = "white".Equals(side, StringComparison.OrdinalIgnoreCase);
             manager.RegisterPlayer(id, wsPLayer, white: white);
         }
