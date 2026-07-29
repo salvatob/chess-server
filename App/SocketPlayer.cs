@@ -65,20 +65,6 @@ public class SocketPlayer : IPlayer {
         throw new NotImplementedException();
     }
 
-    // public async Task StartGameAsync(string color, string fen) {
-    //     await SendMessageAsync(new StartGameDto {
-    //         Color = color,
-    //         InitialFen = fen
-    //     });
-    // }
-    //
-    // public async Task EndGameAsync(string result, string? reason = null) {
-    //     await SendMessageAsync(new EndGameDto {
-    //         Result = result,
-    //         Reason = reason
-    //     });
-    // }
-
     private async Task SendMessageAsync(SocketMessage message) {
         if (_socket.State != WebSocketState.Open) return;
 
@@ -115,12 +101,6 @@ public class SocketPlayer : IPlayer {
         throw new InvalidOperationException("Socket closed while waiting for message.");
     }
 
-    // public void Dispose() {
-    // }
-
-    public SearchHandle GetBestMove(State state, Timers timers) {
-        throw new NotImplementedException();
-    }
 
     public void Dispose() {
         _socket.Dispose();
