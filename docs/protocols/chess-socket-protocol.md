@@ -10,6 +10,8 @@ The protocol follows a simple command-based design inspired by the Universal Che
 
 All messages are serialized as JSON and represented internally by strongly typed DTOs.
 
+All time values are represented as simple discrete values in milliseconds.
+
 ---
 
 # Design Goals
