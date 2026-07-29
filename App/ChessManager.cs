@@ -53,9 +53,6 @@ public class ChessManager {
         else
             gameBuilder.BlackPlayer = player;
         
-        // Notify the player immediately of the game start info
-        _ = player.OnGameStartAsync(white, gameBuilder.State, gameBuilder.Timers);
-
         if (gameBuilder.Ready) {
             BuildGame(builderId);
         }
