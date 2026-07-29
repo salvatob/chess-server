@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chess - New Game</title>
+    <link rel="stylesheet" href="/chess/css/styles.css" />
+    <style>
+        .selection-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="selection-container">
+        <h1>New Chess Game</h1>
+        <form id="gameForm">
+            <div class="form-group">
+                <label for="side">Play as:</label>
+                <select id="side" name="side">
+                    <option value="white">White</option>
+                    <option value="black">Black</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="opponent">Opponent:</label>
+                <select id="opponent" name="opponent">
+                    <option value="bot">Stockfish Bot</option>
+                    <option value="human">Human (Local/Manual)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="whiteTime">White Time (minutes):</label>
+                <input type="number" id="whiteTime" name="whiteTime" value="5" min="1">
+            </div>
+            <div class="form-group">
+                <label for="blackTime">Black Time (minutes):</label>
+                <input type="number" id="blackTime" name="blackTime" value="5" min="1">
+            </div>
+            <div class="form-group">
+                <label for="increment">Increment (seconds):</label>
+                <input type="number" id="increment" name="increment" value="2" min="0">
+            </div>
+            <button type="submit" class="submit-btn">Create Game</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('gameForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                side: formData.get('side'),
+                opponent: formData.get('opponent'),
+                whiteTimeMinutes: parseFloat(formData.get('whiteTime')),
+                blackTimeMinutes: parseFloat(formData.get('blackTime')),
+                incrementSeconds: parseFloat(formData.get('increment'))
+            };
+
+            try {
+                const response = await fetch('/chess/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    window.location.href = `/chess/index.html?id=${result.id}&side=${data.side}`;
+                } else {
+                    alert('Failed to create game');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        });
+    </script>
+</body>
+</html>
