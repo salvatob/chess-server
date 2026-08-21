@@ -99,7 +99,19 @@ function updateStatus() {
 
     statusEl.textContent = status;
     fenEl.textContent = game.fen();
-    movesEl.textContent = game.history().join(' ');
+    
+    // Build move history table
+    const history = game.history();
+    let movesHtml = '<table class="table table-sm">';
+    for (let i = 0; i < history.length; i += 2) {
+        movesHtml += `<tr>
+            <td style="width: 20px; color: #666;">${Math.floor(i / 2) + 1}.</td>
+            <td style="width: 80px;">${history[i]}</td>
+            <td style="width: 80px;">${history[i + 1] || ''}</td>
+        </tr>`;
+    }
+    movesHtml += '</table>';
+    movesEl.innerHTML = movesHtml;
 }
 
 function sendMove(move) {
@@ -152,7 +164,12 @@ function initGame() {
 
         if (msg.type === 'StartGame') {
             statusEl.classList.remove('game-over');
-            game.load(msg.InitialFen || msg.initialFen);
+            const initialFen = msg.InitialFen || msg.initialFen;
+            if (initialFen) {
+                game.load(initialFen);
+            } else {
+                game.reset();
+            }
             board.position(game.fen());
             whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
             blackTimeMs = msg.BlackTimeMs || msg.blackTimeMs || 0;
@@ -167,7 +184,17 @@ function initGame() {
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {
-            game.load(msg.Fen || msg.fen);
+            const lastMove = msg.LastMoveLAN || msg.lastMoveLAN;
+            if (lastMove) {
+                const move = game.move(lastMove, { sloppy: true });
+                if (!move) {
+                    console.warn('Failed to apply last move:', lastMove, 'Falling back to game.load(FEN)');
+                    game.load(msg.Fen || msg.fen);
+                }
+            } else {
+                game.load(msg.Fen || msg.fen);
+            }
+            
             board.position(game.fen());
             whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
             blackTimeMs = msg.BlackTimeMs || msg.blackTimeMs || 0;
