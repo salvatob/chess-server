@@ -2,6 +2,8 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using App;
 using App.Dtos;
+using ChessBotCore;
+using ChessBotCore.Players;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -23,33 +25,11 @@ internal class Program {
         app.UseStaticFiles();
 
         app.MapGet("/", () => Results.Redirect($"/chess/selection.html", permanent: false));
-        // app.MapGet("/", () => Results.Redirect($"/number_adder", permanent: false));
-
-        RouteGroupBuilder numberAdder = app.MapGroup("/number_adder");
-
-        numberAdder.MapGet("/{id:int}", (int id) => {
-                Console.WriteLine($"User has sent a number adder of int {id}");
-                return TypedResults.Ok(1000 - id);
-            }
-        );
 
         RouteGroupBuilder chess = app.MapGroup("/chess");
 
 
-        chess.MapPost("/create", (CreateGameDto dto, ChessManager manager) => {
-            int id = manager.CreateGame(
-                TimeSpan.FromMilliseconds(dto.WhiteTimeMs),
-                TimeSpan.FromMilliseconds(dto.BlackTimeMs),
-                TimeSpan.FromMilliseconds(dto.IncrementMs));
-            
-            if (dto.Opponent.Equals("bot", StringComparison.OrdinalIgnoreCase)) {
-                bool playerIsWhite = dto.Side.Equals("white", StringComparison.OrdinalIgnoreCase);
-                manager.RegisterPlayer(id, new ChessBotCore.Players.RandomPlayer(), !playerIsWhite);
-                // manager.RegisterPlayer(id, new ChessBotCore.Players.EnginePlayer(), !playerIsWhite);
-            }
-            
-            return TypedResults.Ok(new { Id = id });
-        });
+        chess.MapPost("/create", RequestGameCreation);
 
         chess.MapGet("/ws/{id:int}", RegisterWebSocketAsync);
 
@@ -57,13 +37,35 @@ internal class Program {
 
     }
 
-    private static async Task RegisterWebSocketAsync(int id, string side, HttpContext context, ChessManager manager) {
+    private static async Task<IResult> RequestGameCreation(CreateGameDto dto, ChessManager manager)  {
+        int id = manager.CreateGame(
+            TimeSpan.FromMilliseconds(dto.WhiteTimeMs),
+            TimeSpan.FromMilliseconds(dto.BlackTimeMs),
+            TimeSpan.FromMilliseconds(dto.IncrementMs));
+
+        IPlayer opponent = dto.Opponent.ToLower() switch {
+            "engine" => new EnginePlayer(),
+            "bot" => new EnginePlayer(),
+            "random" => new RandomPlayer(),
+            _ => throw new InvalidOperationException($"Unknown opponent: {dto.Opponent}")
+        };
+
+        bool playerIsWhite = dto.WhiteSide;
+
+        manager.RegisterPlayer(id, opponent, !playerIsWhite);
+
+
+        return TypedResults.Ok(new { Id = id });
+    }
+    
+    private static async Task RegisterWebSocketAsync(int id, bool whiteSide, HttpContext context, ChessManager manager) {
         if (context.WebSockets.IsWebSocketRequest) {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            Console.WriteLine($"[DEBUG_LOG] New connection from {context.Connection.RemoteIpAddress}");
+ 
             // websocket ownership is transferred to the player
             var wsPLayer = new SocketPlayer(webSocket);
-            bool white = "white".Equals(side, StringComparison.OrdinalIgnoreCase);
-            manager.RegisterPlayer(id, wsPLayer, white: white);
+            manager.RegisterPlayer(id, wsPLayer, whiteSide);
 
             // Wait until the player signals the socket is closed or the game ends
             await wsPLayer.WaitForCloseAsync();
