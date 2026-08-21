@@ -56,7 +56,7 @@ public class SocketPlayer : IPlayer {
 
     public async Task OnGameStartAsync(bool yourColor, State state, Timers timers) {
         await SendMessageAsync(new StartGameDto {
-            Color = yourColor ? "white" : "black",
+            ColorWhite = yourColor ,
             InitialFen = state.GetFen(),
             WhiteTimeMs = timers.WhiteTimeMs,
             BlackTimeMs = timers.BlackTimeMs,

@@ -15,7 +15,7 @@ public abstract class OutgoingSocketMessage;
 public abstract class IncomingSocketMessage;
 
 public class StartGameDto : OutgoingSocketMessage {
-    public required string Color { get; set; } = "";
+    public required bool ColorWhite { get; set; }
     public required string InitialFen { get; set; } = "";
     public required long WhiteTimeMs { get; set; }
     public required long BlackTimeMs { get; set; }
@@ -50,5 +50,5 @@ public record class CreateGameDto {
     public required long BlackTimeMs { get; set; }
     public required long IncrementMs { get; set; }
     public required string Opponent { get; set; } = "";
-    public required string Side { get; set; } = "";
+    public required bool WhiteSide { get; set; }
 }
