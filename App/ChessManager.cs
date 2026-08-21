@@ -30,11 +30,11 @@ public class ChessManager {
     /// Registers a game builder object in internal storage. Returns the id to that builder.
     /// </summary>
     /// <returns>The id number of the game created.</returns>
-    public int CreateGame(TimeSpan whiteTime, TimeSpan blackTime, TimeSpan increment) {
+    public int CreateGame(TimeSpan whiteTime, TimeSpan blackTime, TimeSpan increment, string? fen = null) {
         int id = Interlocked.Increment(ref _idSeed);
         // We don't create the ChessGame yet, because we need players.
         // Or we could store a placeholder.
-        _gameBuilders[id] = new GameBuilder {
+        var builder = new GameBuilder {
             Timers = new Timers {
                 BaseWhiteTime = whiteTime,
                 BaseBlackTime = blackTime,
@@ -43,6 +43,12 @@ public class ChessManager {
                 BlackTime = blackTime
             }
         };
+
+        if (!string.IsNullOrWhiteSpace(fen)) {
+            builder.State = State.FromFen(fen);
+        }
+
+        _gameBuilders[id] = builder;
         return id;
     }
 

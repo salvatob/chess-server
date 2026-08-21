@@ -58,7 +58,7 @@
             <div class="form-group">
                 <label for="opponent">Opponent:</label>
                 <select id="opponent" name="opponent">
-                    <option value="bot">Proprietary CHessBot Engine</option>
+                    <option value="bot">Proprietary ChessBot Engine</option>
                     <option value="random">Random Player</option>
                     <option value="human">Human (Local/Manual)</option>
                 </select>
@@ -75,6 +75,10 @@
                 <label for="increment">Increment (seconds):</label>
                 <input type="number" id="increment" name="increment" value="2" min="0">
             </div>
+            <div class="form-group">
+                <label for="fen">Initial FEN (optional):</label>
+                <input type="text" id="fen" name="fen" placeholder="initial">
+            </div>
             <button type="submit" class="submit-btn">Create Game</button>
         </form>
     </div>
@@ -89,7 +93,8 @@
                 opponent: formData.get('opponent'),
                 whiteTimeMs: parseInt(formData.get('whiteTime')) * 1000,
                 blackTimeMs: parseInt(formData.get('blackTime')) * 1000,
-                incrementMs: parseInt(formData.get('increment')) * 1000
+                incrementMs: parseInt(formData.get('increment')) * 1000,
+                fen: formData.get('fen') || null
             };
 
             try {

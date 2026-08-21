@@ -51,4 +51,5 @@ public record class CreateGameDto {
     public required long IncrementMs { get; set; }
     public required string Opponent { get; set; } = "";
     public required bool WhiteSide { get; set; }
+    public string? Fen { get; set; }
 }

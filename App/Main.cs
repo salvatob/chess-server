@@ -41,7 +41,8 @@ internal class Program {
         int id = manager.CreateGame(
             TimeSpan.FromMilliseconds(dto.WhiteTimeMs),
             TimeSpan.FromMilliseconds(dto.BlackTimeMs),
-            TimeSpan.FromMilliseconds(dto.IncrementMs));
+            TimeSpan.FromMilliseconds(dto.IncrementMs),
+            dto.Fen);
 
         IPlayer opponent = dto.Opponent.ToLower() switch {
             "engine" => new EnginePlayer(),
