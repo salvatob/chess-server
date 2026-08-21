@@ -26,7 +26,7 @@ public class RequestMoveDto : OutgoingSocketMessage {
     public required string Fen { get; set; }
     public required long WhiteTimeMs { get; set; }
     public required long BlackTimeMs { get; set; }
-
+    public string? LastMoveLAN { get; set; }
 }
 
 public class EndGameDto : OutgoingSocketMessage {
