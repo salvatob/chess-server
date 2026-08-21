@@ -30,6 +30,8 @@ function updateClocks() {
     const delta = now - lastTick;
     lastTick = now;
 
+    if (activeColor === null) return;
+
     if (activeColor === 'white') whiteTimeMs -= delta;
     if (activeColor === 'black') blackTimeMs -= delta;
 
@@ -74,6 +76,9 @@ function onSnapEnd() {
 }
 
 function updateStatus() {
+    if (activeColor === null && statusEl.classList.contains('game-over')) {
+        return; // Don't overwrite game over status
+    }
     let status = '';
 
     let moveColor = 'White';
@@ -137,6 +142,7 @@ function initGame() {
 
     socket.onopen = () => {
         console.log('WebSocket connection opened');
+        statusEl.classList.remove('game-over');
     };
 
     socket.onmessage = (event) => {
@@ -145,6 +151,7 @@ function initGame() {
         console.log('Parsed message:', msg);
 
         if (msg.type === 'StartGame') {
+            statusEl.classList.remove('game-over');
             game.load(msg.InitialFen || msg.initialFen);
             board.position(game.fen());
             whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
@@ -168,7 +175,30 @@ function initGame() {
             updateStatus();
         } else if (msg.type === 'EndGame') {
             activeColor = null;
-            alert(`Game Over: ${msg.Result} ${msg.Reason || ''}`);
+            
+            let resultText = 'Game Over';
+            if (msg.Result !== undefined) {
+                // GameResult enum mapping (common values)
+                const results = {
+                    0: 'White Wins',
+                    1: 'Black Wins',
+                    2: 'Draw',
+                    'WhiteWins': 'White Wins',
+                    'BlackWins': 'Black Wins',
+                    'Draw': 'Draw'
+                };
+                resultText = results[msg.Result] || `Game Over: ${msg.Result}`;
+            }
+            
+            let status = `<strong>${resultText}</strong>`;
+            if (msg.Reason) {
+                status += `<br/>${msg.Reason}`;
+            } else if (msg.reason) {
+                status += `<br/>${msg.reason}`;
+            }
+            
+            statusEl.innerHTML = status;
+            statusEl.classList.add('game-over');
         }
     };
 

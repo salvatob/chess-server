@@ -59,6 +59,16 @@ h1 {
 .status {
     font-weight: 600;
     margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.status.game-over {
+    background: #ffdada;
+    color: #a00;
+    border: 1px solid #ffbaba;
+    text-align: center;
+    font-size: 1.1em;
 }
 
 .clocks {

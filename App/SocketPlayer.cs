@@ -67,7 +67,7 @@ public class SocketPlayer : IPlayer {
     public async Task OnGameGameEndAsync(bool yourColor, GameResult result) {
         await SendMessageAsync(new EndGameDto {
             Result = result,
-            Reason = null
+            Reason = result.GameEndReason.ToString()
         });
         _socketClosedTcs.TrySetResult();
     }
