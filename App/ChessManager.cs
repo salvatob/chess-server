@@ -69,7 +69,7 @@ public class ChessManager {
     private async Task GameWorkerAsync() {
         await foreach (var game in _gameQueue.Reader.ReadAllAsync()) {
             try {
-                await game.Play();
+                await game.PlayAsync();
 
             }
             catch (Exception e) {
