@@ -131,7 +131,8 @@ function initGame() {
     });
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/chess/ws/${gameId}?side=${playerColor}`;
+    const isWhite = playerColor === 'white';
+    const wsUrl = `${protocol}//${window.location.host}/chess/ws/${gameId}?whiteSide=${isWhite}`;
     socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
@@ -148,6 +149,14 @@ function initGame() {
             board.position(game.fen());
             whiteTimeMs = msg.WhiteTimeMs || msg.whiteTimeMs || 0;
             blackTimeMs = msg.BlackTimeMs || msg.blackTimeMs || 0;
+            
+            // The API changed from Color: "white"/"black" to ColorWhite: true/false
+            const colorWhite = msg.ColorWhite !== undefined ? msg.ColorWhite : msg.colorWhite;
+            if (colorWhite !== undefined) {
+                playerColor = colorWhite ? 'white' : 'black';
+                board.orientation(playerColor);
+            }
+            
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {

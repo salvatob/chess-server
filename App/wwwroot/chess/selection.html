@@ -82,8 +82,9 @@
         document.getElementById('gameForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
+            const side = formData.get('side');
             const data = {
-                side: formData.get('side'),
+                whiteSide: side === 'white',
                 opponent: formData.get('opponent'),
                 whiteTimeMs: parseInt(formData.get('whiteTime')) * 1000,
                 blackTimeMs: parseInt(formData.get('blackTime')) * 1000,
@@ -99,7 +100,7 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    window.location.href = `/chess/index.html?id=${result.id}&side=${data.side}`;
+                    window.location.href = `/chess/index.html?id=${result.id}&side=${side}`;
                 } else {
                     alert('Failed to create game');
                 }
