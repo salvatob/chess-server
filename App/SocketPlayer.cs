@@ -13,7 +13,7 @@ namespace App;
 public class SocketPlayer : IPlayer {
     private readonly WebSocket _socket;
     private readonly TaskCompletionSource _socketClosedTcs = new();
-
+    private IReadOnlyList<Move>? _moveHistory;
     /// <summary>
     /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket.
     /// </summary>
@@ -54,7 +54,8 @@ public class SocketPlayer : IPlayer {
         return new SearchHandle(cts, task);
     }
 
-    public async Task OnGameStartAsync(bool yourColor, State state, Timers timers) {
+    public async Task OnGameStartAsync(bool yourColor, State state, Timers timers, IReadOnlyList<Move> moveHistory) {
+        _moveHistory = moveHistory;
         await SendMessageAsync(new StartGameDto {
             ColorWhite = yourColor ,
             InitialFen = state.GetFen(),
