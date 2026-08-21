@@ -100,18 +100,14 @@ function updateStatus() {
     statusEl.textContent = status;
     fenEl.textContent = game.fen();
     
-    // Build move history table
+    // Build move history text
     const history = game.history();
-    let movesHtml = '<table class="table table-sm">';
+    let movesText = '';
     for (let i = 0; i < history.length; i += 2) {
-        movesHtml += `<tr>
-            <td style="width: 20px; color: #666;">${Math.floor(i / 2) + 1}.</td>
-            <td style="width: 80px;">${history[i]}</td>
-            <td style="width: 80px;">${history[i + 1] || ''}</td>
-        </tr>`;
+        movesText += `${Math.floor(i / 2) + 1}. ${history[i]} ${history[i + 1] || ''} `;
     }
-    movesHtml += '</table>';
-    movesEl.innerHTML = movesHtml;
+    movesEl.textContent = movesText.trim();
+    movesEl.scrollTop = movesEl.scrollHeight;
 }
 
 function sendMove(move) {
