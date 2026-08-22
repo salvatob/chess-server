@@ -8,6 +8,10 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(StartGameDto), "StartGame")]
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
 [JsonDerivedType(typeof(EndGameDto), "EndGame")]
+[JsonDerivedType(typeof(PrepareGameDto), "PrepareGame")]
+[JsonDerivedType(typeof(OpponentMoveDto), "OpponentMove")]
+[JsonDerivedType(typeof(GameStartedDto), "GameStarted")]
+[JsonDerivedType(typeof(ErrorMessageDto), "ErrorMessage")]
 public abstract class OutgoingSocketMessage;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -32,6 +36,27 @@ public class RequestMoveDto : OutgoingSocketMessage {
 public class EndGameDto : OutgoingSocketMessage {
     public required GameResult Result { get; set; }
     public required string Reason { get; set; }
+}
+
+public class PrepareGameDto : OutgoingSocketMessage {
+    public required bool ColorWhite { get; set; }
+    public required string InitialFen { get; set; } = "";
+    public required long WhiteTimeMs { get; set; }
+    public required long BlackTimeMs { get; set; }
+}
+
+public class OpponentMoveDto : OutgoingSocketMessage {
+    public required string MoveLAN { get; set; }
+    public required string FenAfter { get; set; }
+}
+
+public class GameStartedDto : OutgoingSocketMessage {
+    // No extra fields needed, just a signal
+}
+
+public class ErrorMessageDto : OutgoingSocketMessage {
+    public required string Message { get; set; }
+    public required bool GameEnd { get; set; }
 }
 
 public class IncomingMoveDto {

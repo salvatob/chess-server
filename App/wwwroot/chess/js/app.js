@@ -158,7 +158,7 @@ function initGame() {
         const msg = JSON.parse(event.data);
         console.log('Parsed message:', msg);
 
-        if (msg.type === 'StartGame') {
+        if (msg.type === 'StartGame' || msg.type === 'PrepareGame') {
             statusEl.classList.remove('game-over');
             const initialFen = msg.InitialFen || msg.initialFen;
             if (initialFen) {
@@ -177,6 +177,24 @@ function initGame() {
                 board.orientation(playerColor);
             }
             
+            activeColor = game.turn() === 'w' ? 'white' : 'black';
+            if (msg.type === 'PrepareGame') {
+                activeColor = null; // Clocks not started yet
+                statusEl.textContent = 'Preparing game...';
+            }
+            updateStatus();
+        } else if (msg.type === 'GameStarted') {
+            activeColor = game.turn() === 'w' ? 'white' : 'black';
+            lastTick = Date.now();
+            updateStatus();
+        } else if (msg.type === 'OpponentMove') {
+            const moveLAN = msg.MoveLAN || msg.moveLAN;
+            const move = game.move(moveLAN, { sloppy: true });
+            if (!move) {
+                console.warn('Failed to apply opponent move:', moveLAN);
+                game.load(msg.FenAfter || msg.fenAfter);
+            }
+            board.position(game.fen());
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             updateStatus();
         } else if (msg.type === 'RequestMove') {
@@ -222,6 +240,20 @@ function initGame() {
             
             statusEl.innerHTML = status;
             statusEl.classList.add('game-over');
+        } else if (msg.type === 'ErrorMessage') {
+            const errorMsg = msg.Message || msg.message;
+            const isGameEnd = msg.GameEnd !== undefined ? msg.GameEnd : msg.gameEnd;
+            
+            console.error('Server error:', errorMsg);
+            
+            if (isGameEnd) {
+                statusEl.innerHTML = `<span style="color: red;"><strong>Fatal Error:</strong> ${errorMsg}</span>`;
+                statusEl.classList.add('game-over');
+                activeColor = null;
+            } else {
+                // Temporary error notification could be better, but for now just alert/log
+                alert('Error: ' + errorMsg);
+            }
         }
     };
 

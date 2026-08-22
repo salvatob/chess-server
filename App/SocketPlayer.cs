@@ -55,6 +55,27 @@ public class SocketPlayer : IPlayer {
         return new SearchHandle(cts, task);
     }
 
+    public async Task PrepareAsync(bool yourColor, State state, Timers timers, IReadOnlyList<Move> moveHistory) {
+        _moveHistory = moveHistory;
+        await SendMessageAsync(new PrepareGameDto {
+            ColorWhite = yourColor,
+            InitialFen = state.GetFen(),
+            WhiteTimeMs = timers.WhiteTimeMs,
+            BlackTimeMs = timers.BlackTimeMs
+        });
+    }
+
+    public async Task OnGameStartAsync() {
+        await SendMessageAsync(new GameStartedDto());
+    }
+
+    public async Task OnOpponentsMoveAsync(Move move, State newState) {
+        await SendMessageAsync(new OpponentMoveDto {
+            MoveLAN = move.PrintLAN(),
+            FenAfter = newState.GetFen()
+        });
+    }
+
     public async Task OnGameStartAsync(bool yourColor, State state, Timers timers, IReadOnlyList<Move> moveHistory) {
         _moveHistory = moveHistory;
         await SendMessageAsync(new StartGameDto {
@@ -66,7 +87,7 @@ public class SocketPlayer : IPlayer {
         });
     }
 
-    public async Task OnGameGameEndAsync(bool yourColor, GameResult result) {
+    public async Task OnGameEndAsync(bool yourColor, GameResult result) {
         await SendMessageAsync(new EndGameDto {
             Result = result,
             Reason = result.GameEndReason.ToString()
@@ -74,13 +95,20 @@ public class SocketPlayer : IPlayer {
         _socketClosedTcs.TrySetResult();
     }
 
-    public Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
+    public async Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
+        await SendMessageAsync(new ErrorMessageDto {
+            Message = error.Message,
+            GameEnd = gameEnd
+        });
         if (gameEnd) _socketClosedTcs.TrySetResult();
-        return Task.CompletedTask;
     }
-    public Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) {
+
+    public async Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) {
+        await SendMessageAsync(new ErrorMessageDto {
+            Message = errorMessage,
+            GameEnd = gameEnd
+        });
         if (gameEnd) _socketClosedTcs.TrySetResult();
-        return Task.CompletedTask;
     }
 
     private async Task SendMessageAsync(OutgoingSocketMessage message) {
