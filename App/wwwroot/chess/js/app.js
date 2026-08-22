@@ -5,16 +5,73 @@ let socket = null;
 let playerColor = 'white';
 let gameId = null;
 
-const whiteClockEl = document.getElementById('whiteClock');
-const blackClockEl = document.getElementById('blackClock');
-const statusEl = document.getElementById('status');
-const fenEl = document.getElementById('fen');
-const movesEl = document.getElementById('moves');
+let whiteClockEl;
+let blackClockEl;
+let statusEl;
+let fenEl;
+let movesEl;
+
+function initUI() {
+    whiteClockEl = document.getElementById('whiteClock');
+    blackClockEl = document.getElementById('blackClock');
+    statusEl = document.getElementById('status');
+    fenEl = document.getElementById('fen');
+    movesEl = document.getElementById('moves');
+    setupPromotionUI();
+}
 
 let whiteTimeMs = 0;
 let blackTimeMs = 0;
 let lastTick = Date.now();
 let activeColor = null;
+let pendingMove = null;
+
+let promotionModal;
+let promotionButtons;
+
+function setupPromotionUI() {
+    promotionModal = document.getElementById('promotion-modal');
+    promotionButtons = document.querySelectorAll('.promotion-options button');
+
+    promotionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const promotion = button.getAttribute('data-promotion');
+            completeMove(promotion);
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === promotionModal) {
+            promotionModal.style.display = 'none';
+            pendingMove = null;
+            board.position(game.fen());
+        }
+    });
+}
+
+function completeMove(promotionPiece) {
+    if (promotionModal) promotionModal.style.display = 'none';
+    if (!pendingMove) return;
+
+    const move = game.move({
+        from: pendingMove.from,
+        to: pendingMove.to,
+        promotion: promotionPiece
+    });
+
+    pendingMove = null;
+
+    if (move === null) {
+        board.position(game.fen());
+        return 'snapback';
+    }
+
+    // Update internal activeColor before sending to avoid clock flickers
+    activeColor = game.turn() === 'w' ? 'white' : 'black';
+    updateStatus();
+    sendMove(move);
+    board.position(game.fen());
+}
 
 
 function formatTime(ms) {
@@ -35,8 +92,8 @@ function updateClocks() {
     if (activeColor === 'white') whiteTimeMs -= delta;
     if (activeColor === 'black') blackTimeMs -= delta;
 
-    whiteClockEl.textContent = formatTime(whiteTimeMs);
-    blackClockEl.textContent = formatTime(blackTimeMs);
+    if (whiteClockEl) whiteClockEl.textContent = formatTime(whiteTimeMs);
+    if (blackClockEl) blackClockEl.textContent = formatTime(blackTimeMs);
 }
 
 setInterval(updateClocks, 100);
@@ -58,6 +115,33 @@ function onDragStart(source, piece, position, orientation) {
 }
 
 function onDrop(source, target) {
+    // Check if move is a promotion
+    const piece = game.get(source);
+    if (piece && piece.type === 'p') {
+        const isWhite = piece.color === 'w';
+        const targetRank = target[1];
+        if ((isWhite && targetRank === '8') || (!isWhite && targetRank === '1')) {
+            // Check if move is legal first (ignoring promotion piece for a moment)
+            const moves = game.moves({ square: source, verbose: true });
+            const isLegal = moves.some(m => m.to === target);
+            
+            if (isLegal) {
+                pendingMove = { from: source, to: target };
+                // Delay showing the modal slightly to let the piece land on the board visually
+                setTimeout(() => {
+                    if (promotionModal) {
+                        promotionModal.style.display = 'block';
+                    } else {
+                        console.error('Promotion modal not found');
+                        // Fallback: promote to queen if modal is missing
+                        completeMove('q');
+                    }
+                }, 50);
+                return; // Wait for user choice
+            }
+        }
+    }
+
     const move = game.move({
         from: source,
         to: target,
@@ -72,10 +156,12 @@ function onDrop(source, target) {
 }
 
 function onSnapEnd() {
+    if (pendingMove) return;
     board.position(game.fen());
 }
 
 function updateStatus() {
+    if (!statusEl) return;
     if (activeColor === null && statusEl.classList.contains('game-over')) {
         return; // Don't overwrite game over status
     }
@@ -98,7 +184,7 @@ function updateStatus() {
     }
 
     statusEl.textContent = status;
-    fenEl.textContent = game.fen();
+    if (fenEl) fenEl.textContent = game.fen();
     
     // Build move history text
     const history = game.history();
@@ -106,8 +192,10 @@ function updateStatus() {
     for (let i = 0; i < history.length; i += 2) {
         movesText += `${Math.floor(i / 2) + 1}. ${history[i]} ${history[i + 1] || ''} `;
     }
-    movesEl.textContent = movesText.trim();
-    movesEl.scrollTop = movesEl.scrollHeight;
+    if (movesEl) {
+        movesEl.textContent = movesText.trim();
+        movesEl.scrollTop = movesEl.scrollHeight;
+    }
 }
 
 function sendMove(move) {
@@ -125,6 +213,7 @@ function sendMove(move) {
 }
 
 function initGame() {
+    initUI();
     const urlParams = new URLSearchParams(window.location.search);
     gameId = urlParams.get('id');
     playerColor = urlParams.get('side') || 'white';
@@ -150,16 +239,22 @@ function initGame() {
 
     socket.onopen = () => {
         console.log('WebSocket connection opened');
-        statusEl.classList.remove('game-over');
+        if (statusEl) statusEl.classList.remove('game-over');
     };
 
     socket.onmessage = (event) => {
+        if (pendingMove) {
+            // If we receive a message while choosing promotion, 
+            // it's likely out of sync or a late update. 
+            // We should probably handle it, but for now let's just log.
+            console.log('Received socket message while promotion is pending');
+        }
         console.log('Raw message data:', event.data);
         const msg = JSON.parse(event.data);
         console.log('Parsed message:', msg);
 
         if (msg.type === 'StartGame' || msg.type === 'PrepareGame') {
-            statusEl.classList.remove('game-over');
+            if (statusEl) statusEl.classList.remove('game-over');
             const initialFen = msg.InitialFen || msg.initialFen;
             if (initialFen) {
                 game.load(initialFen);
@@ -180,7 +275,7 @@ function initGame() {
             activeColor = game.turn() === 'w' ? 'white' : 'black';
             if (msg.type === 'PrepareGame') {
                 activeColor = null; // Clocks not started yet
-                statusEl.textContent = 'Preparing game...';
+                if (statusEl) statusEl.textContent = 'Preparing game...';
             }
             updateStatus();
         } else if (msg.type === 'GameStarted') {
@@ -246,8 +341,10 @@ function initGame() {
                 status += `<br/>${msg.reason}`;
             }
             
-            statusEl.innerHTML = status;
-            statusEl.classList.add('game-over');
+            if (statusEl) {
+                statusEl.innerHTML = status;
+                statusEl.classList.add('game-over');
+            }
         } else if (msg.type === 'ErrorMessage') {
             const errorMsg = msg.Message || msg.message;
             const isGameEnd = msg.GameEnd !== undefined ? msg.GameEnd : msg.gameEnd;
@@ -255,8 +352,10 @@ function initGame() {
             console.error('Server error:', errorMsg);
             
             if (isGameEnd) {
-                statusEl.innerHTML = `<span style="color: red;"><strong>Fatal Error:</strong> ${errorMsg}</span>`;
-                statusEl.classList.add('game-over');
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color: red;"><strong>Fatal Error:</strong> ${errorMsg}</span>`;
+                    statusEl.classList.add('game-over');
+                }
                 activeColor = null;
             } else {
                 // Temporary error notification could be better, but for now just alert/log
