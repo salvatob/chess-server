@@ -191,8 +191,11 @@ function initGame() {
             const moveLAN = msg.MoveLAN || msg.moveLAN;
             const move = game.move(moveLAN, { sloppy: true });
             if (!move) {
-                console.warn('Failed to apply opponent move:', moveLAN);
-                game.load(msg.FenAfter || msg.fenAfter);
+                console.warn('Failed to apply opponent move:', moveLAN, 'Current FEN:', game.fen(), 'Expected FEN:', msg.FenAfter || msg.fenAfter);
+                // Last resort: sync FEN if move application failed
+                if (game.fen() !== (msg.FenAfter || msg.fenAfter)) {
+                    game.load(msg.FenAfter || msg.fenAfter);
+                }
             }
             board.position(game.fen());
             activeColor = game.turn() === 'w' ? 'white' : 'black';
@@ -202,11 +205,16 @@ function initGame() {
             if (lastMove) {
                 const move = game.move(lastMove, { sloppy: true });
                 if (!move) {
-                    console.warn('Failed to apply last move:', lastMove, 'Falling back to game.load(FEN)');
-                    game.load(msg.Fen || msg.fen);
+                    console.warn('Failed to apply last move:', lastMove, 'Current FEN:', game.fen(), 'Expected FEN:', msg.Fen || msg.fen);
                 }
-            } else {
-                game.load(msg.Fen || msg.fen);
+            }
+            
+            // Sync FEN only if we are out of sync, but try to avoid game.load() if possible
+            // because game.load() clears move history.
+            const targetFen = msg.Fen || msg.fen;
+            if (game.fen() !== targetFen) {
+                console.log('FEN out of sync, updating...');
+                game.load(targetFen);
             }
             
             board.position(game.fen());
@@ -257,8 +265,12 @@ function initGame() {
         }
     };
 
-    socket.onclose = () => {
-        console.log('Socket closed');
+    socket.onclose = (event) => {
+        if (event.wasClean && event.code === 1000) {
+            console.log('WebSocket closing handshake ran successfully');
+        } else {
+            console.log('Socket closed', event.wasClean ? 'cleanly' : 'uncleanly', 'with code:', event.code);
+        }
         activeColor = null;
     };
 }
