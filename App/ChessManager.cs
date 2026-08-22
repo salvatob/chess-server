@@ -76,11 +76,13 @@ public class ChessManager {
         await foreach (var game in _gameQueue.Reader.ReadAllAsync()) {
             try {
                 await game.PlayAsync();
-
             }
             catch (Exception e) {
                 Console.Error.WriteLine(e);
             }
+            // Give the players a brief moment to finish their own cleanup/socket closing
+            // before the game and its players are disposed.
+            await Task.Delay(500);
             game.Dispose();
         }
     } 
