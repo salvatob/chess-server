@@ -10,10 +10,14 @@ using ChessBotCore.Search;
 
 namespace App;
 
+/// <summary>
+/// Implementation of an <seealso cref="IPlayer"/>, that is mean to represent a player that is connected via a web socket.
+/// </summary>
 public class SocketPlayer : IPlayer {
     private readonly WebSocket _socket;
     private readonly TaskCompletionSource _socketClosedTcs = new();
     private IReadOnlyList<Move>? _moveHistory;
+    
     /// <summary>
     /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket.
     /// </summary>

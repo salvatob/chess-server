@@ -29,7 +29,7 @@ public class ChessManager {
     /// <summary>
     /// Registers a game builder object in internal storage. Returns the id to that builder.
     /// </summary>
-    /// <returns>The id number of the game created.</returns>
+    /// <returns>The id number of the game created that can be used to further build the game.</returns>
     public int CreateGame(TimeSpan whiteTime, TimeSpan blackTime, TimeSpan increment, string? fen = null) {
         int id = Interlocked.Increment(ref _idSeed);
         // We don't create the ChessGame yet, because we need players.
@@ -52,6 +52,12 @@ public class ChessManager {
         return id;
     }
 
+    /// <summary>
+    /// Registers an initialized player to a game builder.
+    /// </summary>
+    /// <param name="builderId">Id of the builder we are trying to </param>
+    /// <param name="player">The player to register.</param>
+    /// <param name="white">The color/side of the chess game we are trying to register the player to.</param>
     public void RegisterPlayer(int builderId, IPlayer player, bool white) {
         var gameBuilder = _gameBuilders[builderId];
         if (white) 
