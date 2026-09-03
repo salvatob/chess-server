@@ -25,8 +25,13 @@ public class SocketPlayer : IPlayer {
         _socket = socket;
     }
 
+    /// <summary>
+    /// Returns a task that completes when the underlying web socket is closed.
+    /// </summary>
+    /// <returns>A task representing the socket closure.</returns>
     public Task WaitForCloseAsync() => _socketClosedTcs.Task;
 
+    /// <inheritdoc />
     public SearchHandle ChooseMoveAsync(State state, Timers timers) {
         // TODO no exception handling is really present here but it should
         var cts = new CancellationTokenSource();
@@ -59,6 +64,10 @@ public class SocketPlayer : IPlayer {
         return new SearchHandle(cts, task);
     }
 
+    /// <summary>
+    /// Initiates a graceful close of the web socket connection.
+    /// </summary>
+    /// <returns>A task representing the closing operation.</returns>
     private async Task CloseSocketAsync() {
         Console.WriteLine($"[DEBUG_LOG] CloseSocketAsync: Current state: {_socket.State}");
         try {
@@ -76,6 +85,7 @@ public class SocketPlayer : IPlayer {
         }
     }
     
+    /// <inheritdoc />
     public async Task PrepareAsync(bool yourColor, State state, Timers timers, IReadOnlyList<Move> moveHistory) {
         _moveHistory = moveHistory;
         await SendMessageAsync(new PrepareGameDto {
@@ -86,10 +96,12 @@ public class SocketPlayer : IPlayer {
         });
     }
 
+    /// <inheritdoc />
     public async Task OnGameStartAsync() {
         await SendMessageAsync(new GameStartedDto());
     }
 
+    /// <inheritdoc />
     public async Task OnOpponentsMoveAsync(Move move, State newState) {
         await SendMessageAsync(new OpponentMoveDto {
             MoveLAN = move.PrintLAN(),
@@ -97,6 +109,14 @@ public class SocketPlayer : IPlayer {
         });
     }
 
+    /// <summary>
+    /// Notifies the player that the game has officially started with initial state information.
+    /// </summary>
+    /// <param name="yourColor">The color assigned to this player. True for white, false for black.</param>
+    /// <param name="state">The initial state of the game board.</param>
+    /// <param name="timers">The time settings for both players.</param>
+    /// <param name="moveHistory">A reference to the list of moves played so far.</param>
+    /// <returns>A task representing the notification process.</returns>
     public async Task OnGameStartAsync(bool yourColor, State state, Timers timers, IReadOnlyList<Move> moveHistory) {
         _moveHistory = moveHistory;
         await SendMessageAsync(new StartGameDto {
@@ -108,6 +128,7 @@ public class SocketPlayer : IPlayer {
         });
     }
 
+    /// <inheritdoc />
     public async Task OnGameEndAsync(bool yourColor, GameResult result) {
         Console.WriteLine($"[DEBUG_LOG] OnGameEndAsync: sending EndGameDto. Current state: {_socket.State}");
         try {
@@ -124,6 +145,7 @@ public class SocketPlayer : IPlayer {
         _socketClosedTcs.TrySetResult();
     }
 
+    /// <inheritdoc />
     public async Task OnErrorNotifyAsync(Exception error, bool gameEnd) {
         await SendMessageAsync(new ErrorMessageDto {
             Message = error.Message,
@@ -132,6 +154,7 @@ public class SocketPlayer : IPlayer {
         if (gameEnd) _socketClosedTcs.TrySetResult();
     }
 
+    /// <inheritdoc />
     public async Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) {
         await SendMessageAsync(new ErrorMessageDto {
             Message = errorMessage,
@@ -140,6 +163,11 @@ public class SocketPlayer : IPlayer {
         if (gameEnd) _socketClosedTcs.TrySetResult();
     }
 
+    /// <summary>
+    /// Serializes and sends a message through the web socket.
+    /// </summary>
+    /// <param name="message">The outgoing message to send.</param>
+    /// <returns>A task representing the sending operation.</returns>
     private async Task SendMessageAsync(OutgoingSocketMessage message) {
         if (_socket.State is not WebSocketState.Open and not WebSocketState.CloseReceived) return;
 
@@ -154,6 +182,14 @@ public class SocketPlayer : IPlayer {
         );
     }
 
+    /// <summary>
+    /// Waits for a specific type of message from the web socket.
+    /// </summary>
+    /// <typeparam name="TMessage">The type of the expected incoming message.</typeparam>
+    /// <param name="ct">A cancellation token to observe while waiting for the message.</param>
+    /// <returns>The received message of the specified type.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when the socket is closed or the token is cancelled.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the socket state is invalid.</exception>
     private async Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : IncomingSocketMessage {
         byte[] buffer = new byte[1024 * 4];
         try {
@@ -204,6 +240,7 @@ public class SocketPlayer : IPlayer {
     }
 
 
+    /// <inheritdoc />
     public void Dispose() {
         Console.WriteLine($"[DEBUG_LOG] Dispose: Current state: {_socket.State}");
         // Only signal if not already signaled by graceful close

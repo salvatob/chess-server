@@ -19,6 +19,10 @@ public class ChessManager {
     private int _idSeed = 1;
 
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ChessManager"/> class.
+    /// </summary>
+    /// <param name="maxConcurrentGames">The maximum number of games that can run simultaneously.</param>
     public ChessManager(int maxConcurrentGames = 1) {
         for (int i = 0; i < maxConcurrentGames; i++) {
             _ = Task.Run(GameWorkerAsync);
@@ -70,6 +74,10 @@ public class ChessManager {
         }
     }
 
+    /// <summary>
+    /// Constructs a <see cref="ChessGame"/> from a registered builder and adds it to the game queue.
+    /// </summary>
+    /// <param name="builderId">The ID of the game builder to use.</param>
     private void BuildGame(int builderId) {
         var builder = _gameBuilders[builderId];
         var game = builder.Build();
@@ -78,6 +86,10 @@ public class ChessManager {
     }
 
 
+    /// <summary>
+    /// A background worker that processes and plays games from the game queue.
+    /// </summary>
+    /// <returns>A task representing the worker process.</returns>
     private async Task GameWorkerAsync() {
         await foreach (var game in _gameQueue.Reader.ReadAllAsync()) {
             try {

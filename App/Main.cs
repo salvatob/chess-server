@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
 internal class Program {
+    /// <summary>
+    /// Configures the web application and starts the server.
+    /// </summary>
+    /// <param name="args">The command-line arguments.</param>
     public static void Main(string[] args) {
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions());
@@ -37,6 +41,12 @@ internal class Program {
 
     }
 
+    /// <summary>
+    /// Handles the HTTP POST request to create a new chess game.
+    /// </summary>
+    /// <param name="dto">The game creation data transfer object.</param>
+    /// <param name="manager">The chess manager instance.</param>
+    /// <returns>A task representing the operation, returning the created game's ID.</returns>
     private static async Task<IResult> RequestGameCreation(CreateGameDto dto, ChessManager manager)  {
         int id = manager.CreateGame(
             TimeSpan.FromMilliseconds(dto.WhiteTimeMs),
@@ -59,6 +69,14 @@ internal class Program {
         return TypedResults.Ok(new { Id = id });
     }
     
+    /// <summary>
+    /// Handles a WebSocket connection request for a specific game and player side.
+    /// </summary>
+    /// <param name="id">The ID of the game to join.</param>
+    /// <param name="whiteSide">Whether the connecting player is white.</param>
+    /// <param name="context">The HTTP context for the request.</param>
+    /// <param name="manager">The chess manager instance.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private static async Task RegisterWebSocketAsync(int id, bool whiteSide, HttpContext context, ChessManager manager) {
         if (context.WebSockets.IsWebSocketRequest) {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
