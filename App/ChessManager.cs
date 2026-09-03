@@ -69,16 +69,17 @@ public class ChessManager {
         else
             gameBuilder.BlackPlayer = player;
         
-        if (gameBuilder.Ready) {
-            BuildGame(builderId);
-        }
+        // if (gameBuilder.Ready) {
+        //     StartGame(builderId);
+        // }
     }
 
     /// <summary>
     /// Constructs a <see cref="ChessGame"/> from a registered builder and adds it to the game queue.
     /// </summary>
     /// <param name="builderId">The ID of the game builder to use.</param>
-    private void BuildGame(int builderId) {
+    /// <exception cref="InvalidOperationException">When teh game is not ready.</exception>
+    public void StartGame(int builderId) {
         var builder = _gameBuilders[builderId];
         var game = builder.Build();
         if (_gameQueue.Writer.TryWrite(game))

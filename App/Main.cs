@@ -87,6 +87,10 @@ internal class Program {
             var wsPLayer = new SocketPlayer(webSocket);
             manager.RegisterPlayer(id, wsPLayer, whiteSide);
 
+            // invocate the game start from here, since now both the opposing player
+            // and the socket player should be connected...
+            manager.StartGame(id);
+            
             // Wait until the player signals the socket is closed
             await wsPLayer.WaitForCloseAsync();
             
