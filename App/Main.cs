@@ -86,7 +86,7 @@ internal class Program {
             var wsPLayer = new SocketPlayer(webSocket);
             manager.RegisterPlayer(id, wsPLayer, whiteSide);
 
-            // Wait until the player signals the socket is closed or the game ends
+            // Wait until the player signals the socket is closed
             await wsPLayer.WaitForCloseAsync();
             
             // Give a tiny bit of time for the network stack to flush the last frames 
