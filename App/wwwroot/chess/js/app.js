@@ -321,24 +321,47 @@ function initGame() {
             activeColor = null;
             
             let resultText = 'Game Over';
+            let outcome = null;
+            
             if (msg.Result !== undefined) {
-                // GameResult enum mapping (common values)
+                // GameResult is a record { Outcome: int, GameEndReason: int, Moves: [] }
+                // Outcome: 0: NonTerminal, 1: WhiteWin, 2: BlackWin, 3: Draw
+                outcome = msg.Result.Outcome;
+                if (outcome === undefined) outcome = msg.Result.outcome;
+                
                 const results = {
-                    0: 'White Wins',
-                    1: 'Black Wins',
-                    2: 'Draw',
-                    'WhiteWins': 'White Wins',
-                    'BlackWins': 'Black Wins',
+                    1: 'White Wins',
+                    2: 'Black Wins',
+                    3: 'Draw',
+                    'WhiteWin': 'White Wins',
+                    'BlackWin': 'Black Wins',
                     'Draw': 'Draw'
                 };
-                resultText = results[msg.Result] || `Game Over: ${msg.Result}`;
+                
+                const rawOutcome = outcome !== undefined ? outcome : msg.Result;
+                resultText = results[rawOutcome] || `Game Over: ${JSON.stringify(rawOutcome)}`;
             }
             
             let status = `<strong>${resultText}</strong>`;
-            if (msg.Reason) {
-                status += `<br/>${msg.Reason}`;
-            } else if (msg.reason) {
-                status += `<br/>${msg.reason}`;
+            
+            // Add "You won/lost" message
+            if (playerColor && outcome !== undefined) {
+                const whiteWon = outcome === 1 || outcome === 'WhiteWin';
+                const blackWon = outcome === 2 || outcome === 'BlackWin';
+                const isDraw = outcome === 3 || outcome === 'Draw';
+                
+                if (isDraw) {
+                    status += ' - It\'s a draw!';
+                } else if ((playerColor === 'white' && whiteWon) || (playerColor === 'black' && blackWon)) {
+                    status += ' - <span style="color: green;">You won!</span>';
+                } else {
+                    status += ' - <span style="color: red;">You lost.</span>';
+                }
+            }
+
+            const reason = msg.Reason || msg.reason;
+            if (reason) {
+                status += `<br/>Reason: ${reason}`;
             }
             
             if (statusEl) {

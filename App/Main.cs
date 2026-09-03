@@ -58,6 +58,7 @@ internal class Program {
             "engine" => new EnginePlayer(),
             "bot" => new EnginePlayer(),
             "random" => new RandomPlayer(),
+            "human" => new ConsolePlayer(),
             _ => throw new InvalidOperationException($"Unknown opponent: {dto.Opponent}")
         };
 
