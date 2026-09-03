@@ -100,7 +100,7 @@ public class ChessManager {
             }
             // Give the players a brief moment to finish their own cleanup/socket closing
             // before the game and its players are disposed.
-            await Task.Delay(500);
+            // await Task.Delay(500); // TODO
             game.Dispose();
         }
     } 

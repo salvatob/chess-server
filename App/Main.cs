@@ -92,7 +92,7 @@ internal class Program {
             
             // Give a tiny bit of time for the network stack to flush the last frames 
             // before the request handler returns and potentially tears down the context.
-            await Task.Delay(100);
+            // await Task.Delay(100); // TODO
             Console.WriteLine($"[DEBUG_LOG] Connection from {context.Connection.RemoteIpAddress} closing.");
         }
         else {
