@@ -26,8 +26,10 @@ public class ChessManagerTests {
         
         // Act
         // Use a FEN that is almost mate so the game ends quickly
-        var (_, white, black) = await SetupGame(manager, MateInOneFen);
+        var (id, white, black) = await SetupGame(manager, MateInOneFen);
 
+        manager.StartGame(id);
+        
         // Assert
         // The game should finish very quickly because the MockPlayer will play the winning move
         // or just some move that leads to end. 
@@ -56,8 +58,9 @@ public class ChessManagerTests {
         await Task.Delay(200); 
         
         // Game 2: should be queued
-        var (_, white2, _) = await SetupGame(manager);
+        var (id, white2, _) = await SetupGame(manager);
         
+        manager.StartGame(id);
         await Task.Delay(500);
         
         // Assert
@@ -90,6 +93,8 @@ public class ChessManagerTests {
             manager.RegisterPlayer(id, normalPlayer, true);
             manager.RegisterPlayer(id, throwingPlayer, false);
         }
+        
+        manager.StartGame(id);
         
         await Task.Delay(500);
         
