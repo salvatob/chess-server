@@ -54,13 +54,14 @@ public class ChessManagerTests {
         int id1 = manager.CreateGame(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3), TimeSpan.Zero);
         manager.RegisterPlayer(id1, whitePlayer1, true);
         manager.RegisterPlayer(id1, blackPlayer1, false);
+        manager.StartGame(id1);
         
         await Task.Delay(200); 
         
         // Game 2: should be queued
-        var (id, white2, _) = await SetupGame(manager);
+        var (id2, white2, _) = await SetupGame(manager);
+        manager.StartGame(id2);
         
-        manager.StartGame(id);
         await Task.Delay(500);
         
         // Assert
@@ -102,7 +103,8 @@ public class ChessManagerTests {
         Assert.True(throwingPlayer.Disposed);
         
         // Verify worker is still alive
-        var (_, w2, _) = await SetupGame(manager, MateInOneFen);
+        var (idNext, w2, _) = await SetupGame(manager, MateInOneFen);
+        manager.StartGame(idNext);
         await Task.Delay(500);
         Assert.True(w2.Disposed);
     }
