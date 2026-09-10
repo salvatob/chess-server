@@ -67,16 +67,23 @@ public class ChessManager {
     /// <param name="builderId">Id of the builder we are trying to </param>
     /// <param name="player">The player to register.</param>
     /// <param name="white">The color/side of the chess game we are trying to register the player to.</param>
+    /// <exception cref="InvalidOperationException">When the player is already registered or the game is not ready.</exception>
+    /// <exception cref="KeyNotFoundException">When the builder is not found.</exception>
     public void RegisterPlayer(int builderId, IPlayer player, bool white) {
         var gameBuilder = _gameBuilders[builderId];
-        if (white) 
-            gameBuilder.WhitePlayer = player;
-        else
-            gameBuilder.BlackPlayer = player;
         
-        // if (gameBuilder.Ready) {
-        //     StartGame(builderId);
-        // }
+        if (white) {
+            if (gameBuilder.WhiteIsSet) {
+                throw new InvalidOperationException("White player already set.");
+            }
+
+            gameBuilder.WhitePlayer = player;
+        } else {
+            if (gameBuilder.BlackIsSet) {
+                throw new InvalidOperationException("Black player already set.");
+            }
+            gameBuilder.BlackPlayer = player;
+        }
     }
 
     /// <summary>
