@@ -9,11 +9,11 @@ namespace App.UnitTests;
 
 public class SocketPlayerErrorTests {
     private readonly MockWebSocketWrapper _mockSocket;
-    private readonly SocketPlayer _player;
+    private readonly SocketPlayer _socketPlayer;
 
     public SocketPlayerErrorTests() {
         _mockSocket = new MockWebSocketWrapper();
-        _player = new SocketPlayer(_mockSocket);
+        _socketPlayer = new SocketPlayer(_mockSocket);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class SocketPlayerErrorTests {
         _mockSocket.PushMessage(new MoveDtoMessage { Move = new IncomingMoveDto { From = "z9", To = "e4" } });
         
         // Act & Assert
-        using var handle = _player.ChooseMoveAsync(state, timers);
+        using var handle = _socketPlayer.ChooseMoveAsync(state, timers);
         await Assert.ThrowsAsync<ArgumentException>(async () => await handle.Result);
     }
 
@@ -39,7 +39,7 @@ public class SocketPlayerErrorTests {
         _mockSocket.PushMessage(new MoveDtoMessage { Move = null });
         
         // Act & Assert
-        using var handle = _player.ChooseMoveAsync(state, timers);
+        using var handle = _socketPlayer.ChooseMoveAsync(state, timers);
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await handle.Result);
     }
 
@@ -50,7 +50,7 @@ public class SocketPlayerErrorTests {
         var timers = new Timers();
         
         // Act
-        using var handle = _player.ChooseMoveAsync(state, timers);
+        using var handle = _socketPlayer.ChooseMoveAsync(state, timers);
         
         // Wait for it to hit WaitMessageAsync
         await Task.Delay(50);
