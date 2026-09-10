@@ -10,6 +10,8 @@ public class MockWebSocketWrapper : IWebSocketWrapper {
     public List<string> CallOrder { get; } = new();
     public bool Disposed { get; private set; }
     
+    private readonly Queue<TaskCompletionSource<IncomingSocketMessage>> _waiters = new();
+
     public Task WaitForCloseAsync() => Task.CompletedTask;
 
     public Task SendMessageAsync(OutgoingSocketMessage message) {
@@ -18,12 +20,34 @@ public class MockWebSocketWrapper : IWebSocketWrapper {
         return Task.CompletedTask;
     }
 
-    public Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : IncomingSocketMessage {
+    public async Task<TMessage> WaitMessageAsync<TMessage>(CancellationToken ct) where TMessage : IncomingSocketMessage {
         CallOrder.Add(nameof(WaitMessageAsync));
-        if (IncomingMessages.Count == 0) {
-            throw new InvalidOperationException("No incoming messages queued in mock.");
+        
+        if (IncomingMessages.Count > 0) {
+            return (TMessage)IncomingMessages.Dequeue();
         }
-        return Task.FromResult((TMessage)IncomingMessages.Dequeue());
+
+        var tcs = new TaskCompletionSource<IncomingSocketMessage>();
+        _waiters.Enqueue(tcs);
+        
+        using (ct.Register(() => tcs.TrySetCanceled(ct))) {
+            var result = await tcs.Task;
+            return (TMessage)result;
+        }
+    }
+
+    public void PushMessage(IncomingSocketMessage message) {
+        if (_waiters.TryDequeue(out var tcs)) {
+            tcs.TrySetResult(message);
+        } else {
+            IncomingMessages.Enqueue(message);
+        }
+    }
+
+    public void TriggerWaitException(Exception ex) {
+        if (_waiters.TryDequeue(out var tcs)) {
+            tcs.TrySetException(ex);
+        }
     }
 
     public Task CloseSocketAsync() {

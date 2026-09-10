@@ -34,19 +34,30 @@ public class MockPlayer : IPlayer {
 
     public Task OnErrorNotifyAsync(string errorMessage, bool gameEnd) => Task.CompletedTask;
 
-    public void Dispose() {
+    public virtual void Dispose() {
         Disposed = true;
     }
 }
 
 
 class BlockingPlayer : MockPlayer {
-    private readonly TaskCompletionSource<ChessBotCore.Search.SearchResults> _tcs = new();
+    private TaskCompletionSource<ChessBotCore.Search.SearchResults> _tcs = new();
+
     public override SearchHandle ChooseMoveAsync(State state, Timers timers) {
         var cts = new CancellationTokenSource();
         return new SearchHandle(cts, _tcs.Task);
     }
-    public void Release() => _tcs.SetResult(new ChessBotCore.Search.SearchResults { BestMove = new Move() });
+
+    public void Release() {
+        var oldTcs = _tcs;
+        _tcs = new TaskCompletionSource<ChessBotCore.Search.SearchResults>();
+        var move = new Move(0, 0); // Still default move, but now we ensure Game 1 ends eventually
+        oldTcs.SetResult(new ChessBotCore.Search.SearchResults { BestMove = move });
+    }
+
+    public void EndGame() {
+        _tcs.TrySetException(new OperationCanceledException());
+    }
 }
 
 class ThrowingPlayer : MockPlayer {
