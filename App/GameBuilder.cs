@@ -7,7 +7,7 @@ namespace App;
 /// <summary>
 /// A simple builder class for a <seealso cref="ChessGame"/> object.
 /// </summary>
-public class GameBuilder {
+public class GameBuilder : IDisposable {
     /// <summary>
     /// The player playing as white.
     /// </summary>
@@ -44,7 +44,8 @@ public class GameBuilder {
     public bool Ready => WhiteIsSet && BlackIsSet;
 
     /// <summary>
-    /// Builds the <seealso cref="ChessGame"/> object.
+    /// Builds the <seealso cref="ChessGame"/> object. Transfers the ownership of the IPlayer instances
+    /// to the newly created <seealso cref="ChessGame"/> instance.
     /// </summary>
     /// <returns>The built <seealso cref="ChessGame"/> instance.</returns>
     /// <exception cref="InvalidOperationException">When the object is not ready to be built (some properties are missing.)</exception>
@@ -52,6 +53,18 @@ public class GameBuilder {
         if (!Ready) {
             throw new InvalidOperationException("Players are not set yet.");
         }
-        return new ChessGame(WhitePlayer!, BlackPlayer!, Timers, State);
+
+        var newGame = new ChessGame(WhitePlayer!, BlackPlayer!, Timers, State);
+        
+        // delete refs so that disposal of this builder
+        // does not dispose players used by the newly created game
+        WhitePlayer = null;
+        BlackPlayer = null;
+        return newGame;
+    }
+    
+    public void Dispose() {
+        WhitePlayer?.Dispose();
+        BlackPlayer?.Dispose();
     }
 }
