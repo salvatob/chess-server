@@ -26,6 +26,7 @@ public class SocketPlayerTests {
             BaseBlackTime = TimeSpan.FromMilliseconds(2000), 
             Increment = TimeSpan.FromMilliseconds(500) 
         };
+        // ReSharper disable once CollectionNeverUpdated.Local
         var moveHistory = new List<Move>();
 
         // Act
@@ -50,6 +51,7 @@ public class SocketPlayerTests {
             BaseBlackTime = TimeSpan.FromMilliseconds(4000),
             Increment = TimeSpan.Zero
         };
+        // ReSharper disable once CollectionNeverUpdated.Local
         var moveHistory = new List<Move>();
 
         // Act
@@ -95,7 +97,6 @@ public class SocketPlayerTests {
         Assert.Equal(6000L, requestMoveDto.BlackTimeMs);
 
         // 2. Check returned move
-        Assert.NotNull(results.BestMove);
         Assert.Equal("e2e4", results.BestMove.PrintLAN());
     }
 
@@ -111,7 +112,7 @@ public class SocketPlayerTests {
         var message = Assert.Single(_mockSocket.SentMessages);
         var endGameDto = Assert.IsType<EndGameDto>(message);
         Assert.Equal(result, endGameDto.Result);
-        Assert.Equal("Checkmate", endGameDto.Reason);
+        Assert.Equal(nameof(GameEndReason.Checkmate), endGameDto.Reason);
         Assert.Equal(WebSocketState.Closed, _mockSocket.State);
     }
 
@@ -120,8 +121,15 @@ public class SocketPlayerTests {
         // Arrange
         var state = State.Initial;
         // e2e4 move
-        var move = Move.FindFullMove(new MoveDTO(Coordinates.FromString("e2").To1D(), Coordinates.FromString("e4").To1D(), null), state);
-        var newState = new State(state);
+        var move = Move.FindFullMove(
+            new MoveDTO(
+                Coordinates.FromString("e2").To1D(),
+                Coordinates.FromString("e4").To1D(),
+                null),
+            state
+            );
+        
+        var newState = state.Clone();
         newState.ApplyMove(move);
 
         // Act
