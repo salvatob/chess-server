@@ -71,18 +71,21 @@ public class ChessManager {
     /// <exception cref="KeyNotFoundException">When the builder is not found.</exception>
     public void RegisterPlayer(int builderId, IPlayer player, bool white) {
         var gameBuilder = _gameBuilders[builderId];
-        
-        if (white) {
-            if (gameBuilder.WhiteIsSet) {
-                throw new InvalidOperationException("White player already set.");
-            }
 
-            gameBuilder.WhitePlayer = player;
-        } else {
-            if (gameBuilder.BlackIsSet) {
-                throw new InvalidOperationException("Black player already set.");
+        lock (gameBuilder) {
+            if (white) {
+                if (gameBuilder.WhiteIsSet) {
+                    throw new InvalidOperationException("White player already set.");
+                }
+
+                gameBuilder.WhitePlayer = player;
+            } else {
+                if (gameBuilder.BlackIsSet) {
+                    throw new InvalidOperationException("Black player already set.");
+                }
+
+                gameBuilder.BlackPlayer = player;
             }
-            gameBuilder.BlackPlayer = player;
         }
     }
 
@@ -93,31 +96,32 @@ public class ChessManager {
     /// <exception cref="InvalidOperationException">When the game is not ready.</exception>
     /// <exception cref="KeyNotFoundException">When the builder is not found.</exception>
     public void StartGame(int builderId) {
-        if (!_gameBuilders.TryRemove(builderId, out var builder)) {
-            // The builder has already timed out, been build, or just never existed.
+        if (!_gameBuilders.TryGetValue(builderId, out var builder)) {
             throw new KeyNotFoundException($"A builder with id {builderId} was not found.");
         }
-        
-        if (!builder.Ready) {
-            // we just return the builder in the dict
-            _gameBuilders[builderId] = builder;
-        
-            // the previous timeout removal could be called here, while the builder is taken out
-            // so I opt to call it again here, so that the removal is ensured 'sometime'
-            _ = RemoveBuilderAfterTimeout(builderId);
+
+        ChessGame? game = null;
+        bool gameReady = false;
+
+        lock (builder) {
+            if (builder.TryBuild(out game)) {
+                gameReady = true;
+                _gameBuilders.TryRemove(builderId, out _);
+            }
+        }
+
+        if (!gameReady) {
             throw new InvalidOperationException("Players are not set yet.");
         }
-        
-        ChessGame game = builder.Build();
-            
+
         builder.Dispose();
         // forcing builder.Dispose() is mostly for peace of mind, since ownership of all data
         // has been transferred out of the builder
-        
-         if (!_gameQueue.Writer.TryWrite(game)) {
-             game.Dispose();
-             throw new InvalidOperationException("Failed to enqueue game");
-         }
+
+        if (!_gameQueue.Writer.TryWrite(game!)) {
+            game!.Dispose();
+            throw new InvalidOperationException("Failed to enqueue game");
+        }
     }
 
     /// <summary>
