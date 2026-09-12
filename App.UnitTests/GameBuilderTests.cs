@@ -11,7 +11,7 @@ public class GameBuilderTests {
         var builder = new GameBuilder();
         
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => builder.Build());
+        Assert.False(builder.TryBuild(out _));
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class GameBuilderTests {
         builder.WhitePlayer = new MockPlayer();
         
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => builder.Build());
+        Assert.False(builder.TryBuild(out _));
     }
 
     [Fact]
@@ -32,9 +32,10 @@ public class GameBuilderTests {
         builder.BlackPlayer = new MockPlayer();
         
         // Act
-        var game = builder.Build();
+        var success = builder.TryBuild(out var game);
         
         // Assert
+        Assert.True(success);
         Assert.NotNull(game);
     }
 }

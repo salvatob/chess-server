@@ -43,24 +43,22 @@ public class GameBuilder : IDisposable {
     /// </summary>
     public bool Ready => WhiteIsSet && BlackIsSet;
 
-    /// <summary>
-    /// Builds the <seealso cref="ChessGame"/> object. Transfers the ownership of the IPlayer instances
-    /// to the newly created <seealso cref="ChessGame"/> instance.
-    /// </summary>
-    /// <returns>The built <seealso cref="ChessGame"/> instance.</returns>
-    /// <exception cref="InvalidOperationException">When the object is not ready to be built (some properties are missing.)</exception>
-    public ChessGame Build() {
-        if (!Ready) {
-            throw new InvalidOperationException("Players are not set yet.");
-        }
+    public bool TryBuild(out ChessGame game) {
+        lock (this) {
+            if (!Ready) {
+                game = default;
+                return false;
+            }
 
-        var newGame = new ChessGame(WhitePlayer!, BlackPlayer!, Timers, State);
+            var newGame = new ChessGame(WhitePlayer!, BlackPlayer!, Timers, State);
         
-        // delete refs so that disposal of this builder
-        // does not dispose players used by the newly created game
-        WhitePlayer = null;
-        BlackPlayer = null;
-        return newGame;
+            // delete refs so that disposal of this builder
+            // does not dispose players used by the newly created game
+            WhitePlayer = null;
+            BlackPlayer = null;
+            game = newGame;
+            return true;
+        }
     }
     
     public void Dispose() {
