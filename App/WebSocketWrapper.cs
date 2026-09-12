@@ -12,6 +12,10 @@ public class WebSocketWrapper : IWebSocketWrapper {
     private readonly WebSocket _socket;
     private readonly TaskCompletionSource _socketClosedTcs = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WebSocketWrapper"/> class.
+    /// </summary>
+    /// <param name="socket">The <see cref="WebSocket"/> to wrap.</param>
     public WebSocketWrapper(WebSocket socket) {
         _socket = socket;
     }
@@ -23,6 +27,7 @@ public class WebSocketWrapper : IWebSocketWrapper {
     public Task WaitForCloseAsync() => _socketClosedTcs.Task;
 
     /// <inheritdoc />
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled.</exception>
     public async Task SendMessageAsync(OutgoingSocketMessage message) {
         if (_socket.State is not WebSocketState.Open and not WebSocketState.CloseReceived) return;
 

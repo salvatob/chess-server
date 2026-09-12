@@ -33,6 +33,10 @@ public class ChessManager {
     /// <summary>
     /// Registers a game builder object in internal storage. Returns the id to that builder.
     /// </summary>
+    /// <param name="whiteTime">The base time for the white player.</param>
+    /// <param name="blackTime">The base time for the black player.</param>
+    /// <param name="increment">The time increment per move.</param>
+    /// <param name="fen">Optional initial board state in FEN format.</param>
     /// <returns> The id number of the game created that can be used to further build the game.</returns>
     public int CreateGame(TimeSpan whiteTime, TimeSpan blackTime, TimeSpan increment, string? fen = null) {
         int id = Interlocked.Increment(ref _idSeed);
@@ -137,7 +141,7 @@ public class ChessManager {
     }
     
     /// <summary>
-    /// A background worker that processes and plays games from the game queue.
+    /// Processes and plays games from the internal game queue.
     /// </summary>
     /// <returns>A task representing the worker process.</returns>
     private async Task GameWorkerAsync() {

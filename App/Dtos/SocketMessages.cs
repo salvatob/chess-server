@@ -4,6 +4,9 @@ using ChessBotCore.Game;
 
 namespace App.Dtos;
 
+/// <summary>
+/// Base class for all messages sent from the server to the client.
+/// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(StartGameDto), "StartGame")]
 [JsonDerivedType(typeof(RequestMoveDto), "RequestMove")]
@@ -14,6 +17,9 @@ namespace App.Dtos;
 [JsonDerivedType(typeof(ErrorMessageDto), "ErrorMessage")]
 public abstract class OutgoingSocketMessage;
 
+/// <summary>
+/// Base class for all messages received from the client by the server.
+/// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(MoveDtoMessage), "Move")]
 public abstract class IncomingSocketMessage;

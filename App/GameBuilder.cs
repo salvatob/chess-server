@@ -43,10 +43,15 @@ public class GameBuilder : IDisposable {
     /// </summary>
     public bool Ready => WhiteIsSet && BlackIsSet;
 
+    /// <summary>
+    /// Attempts to build a <see cref="ChessGame"/> from the set players and parameters.
+    /// </summary>
+    /// <param name="game">When this method returns, contains the built <see cref="ChessGame"/> if successful; otherwise, null.</param>
+    /// <returns><c>true</c> if the game was successfully built; otherwise, <c>false</c>.</returns>
     public bool TryBuild(out ChessGame game) {
         lock (this) {
             if (!Ready) {
-                game = default;
+                game = default!;
                 return false;
             }
 
@@ -61,6 +66,9 @@ public class GameBuilder : IDisposable {
         }
     }
     
+    /// <summary>
+    /// Disposes the builder and its registered players.
+    /// </summary>
     public void Dispose() {
         WhitePlayer?.Dispose();
         BlackPlayer?.Dispose();

@@ -18,14 +18,16 @@ public class SocketPlayer : IPlayer {
     private IReadOnlyList<Move>? _moveHistory;
     
     /// <summary>
-    /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket wrapper.
+    /// Initializes a new instance of the <see cref="SocketPlayer"/> class using a <see cref="WebSocket"/>.
     /// </summary>
+    /// <param name="socket">The underlying web socket.</param>
     public SocketPlayer(WebSocket socket) : this (new WebSocketWrapper(socket)) {
     }
     
     /// <summary>
-    /// The new <seealso cref="SocketPlayer"/> takes ownership of the web socket wrapper.
+    /// Initializes a new instance of the <see cref="SocketPlayer"/> class using an <see cref="IWebSocketWrapper"/>.
     /// </summary>
+    /// <param name="socket">The web socket wrapper to use.</param>
     public SocketPlayer(IWebSocketWrapper socket) {
         _socket = socket;
     }
@@ -37,6 +39,8 @@ public class SocketPlayer : IPlayer {
     public Task WaitForCloseAsync() => _socket.WaitForCloseAsync();
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException">Thrown when move data is missing from the message or the socket state is invalid.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled or the socket is closed.</exception>
     public SearchHandle ChooseMoveAsync(State state, Timers timers) {
         // TODO no exception handling is really present here but it should
         var cts = new CancellationTokenSource();
