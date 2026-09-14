@@ -46,16 +46,3 @@ chessManager.StartGame(gameId);
 1. **HTTP POST `/chess/create`**: The frontend sends game settings (time, FEN, opponent type). The server returns a `gameId`.
 2. **WebSocket `/chess/ws/{id}`**: The browser connects to this endpoint. The server wraps this connection in a `SocketPlayer` and registers it to the game.
 
-### Database & State
-Currently, the application is **stateless** in regards to a traditional database. Game state is kept in memory within the `ChessManager` and `ChessGame` objects. Board state is communicated using **FEN (Forsyth-Edwards Notation)**.
-
-### Communication Protocol
-JSON messages are exchanged over WebSockets between the `SocketPlayer` and the frontend. Key messages include:
-- `PrepareGame`: Initial sync of board and clocks.
-- `RequestMove`: Asking the client to provide a move.
-- `OpponentMove`: Notifying the client of the other player's move.
-- `EndGame`: Final result and reason.
-
-### Modifying the Frontend
-The frontend logic resides in `App/wwwroot/chess/js/app.js`. It handles the WebSocket connection, renders the board, and sends user moves back to the server.
-
