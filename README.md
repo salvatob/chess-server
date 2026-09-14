@@ -1,13 +1,6 @@
-# Chessbot Showcase
+# Chess server
 
 A web-based showcase for a custom C# chess framework, demonstrating real-time gameplay through a multi-threaded ASP.NET Core backend.
-
-## Screenshots
-
-| Game Selection | Active Gameplay |
-| :---: | :---: |
-| ![Selection Screen](Screenshots/landing_page.png) | ![Gameplay Screen](Screenshots/gameplay.png) |
-| *Configure game parameters and choose opponents* | *Real-time interaction via WebSockets* |
 
 ## Overview
 
@@ -52,6 +45,16 @@ sequenceDiagram
 2.  **Game Building:** Since a game requires two players (which might arrive at different times via different protocols), a `GameBuilder` acts as a temporary container to synchronize setup before the game begins.
 3.  **Concurrency Model:** Instead of spawning a new thread for every game, ready games are pushed into a `System.Threading.Channel`. A fixed pool of background workers consumes this channel, executing the game logic asynchronously.
 4.  **Player Abstraction:** The backend treats all opponents identically through an `IPlayer` interface. Whether a player is a remote human via WebSockets or a local AI engine, the core game loop remains unchanged.
+
+
+## Screenshots
+
+![Selection Screen](Screenshots/landing_page.png)
+*Configure game parameters and choose opponents*
+
+![Gameplay Screen](Screenshots/gameplay.png)
+*Real-time interaction via WebSockets*
+
 
 ## Running Locally
 
