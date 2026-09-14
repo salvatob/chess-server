@@ -19,7 +19,7 @@ The central authority for managing the lifecycle of all games. It is fully threa
 - **Concurrency**: Uses `System.Threading.Channels` to distribute games to worker tasks.
 
 ### `GameBuilder`
-A staging object used to configure a game before it starts. 
+A staging object used to configure a game before it starts, while preventing data races common in these opeartions.
 
 - **Responsibilities**: Storing time controls, initial FEN, and registering the two `IPlayer` instances.
 - **Lifecycle**: Once `TryBuild` is called, the `ChessGame` is created, and the builder is disposed.
@@ -78,3 +78,6 @@ The protocol is **asynchronous and event-driven**. The server drives the game st
 - `MoveDtoMessage`: Sent by the client in response to a move request, containing the chosen move.
 - `CreateGameDto`: (HTTP) Used to define initial game settings during the creation phase.
 
+## Design Principles
+
+Most of the code was implmeneted with thread safety in mind. I also paid a lot of attention to correct handling of ownership of `IDisposable` resources, such as the `WebSocket` object, whose lifetime is a very complex matter.
