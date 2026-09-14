@@ -15,9 +15,6 @@ internal class Program {
     public static void Main(string[] args) {
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        builder.WebHost.UseUrls("http://0.0.0.0:5000");
-        // builder.WebHost.UseUrls("http://192.168.1.1:5000");
-        // builder.WebHost.UseUrls("http://192.168.1.226:5000");
 
         builder.Services.AddSingleton<ChessManager>();
 
