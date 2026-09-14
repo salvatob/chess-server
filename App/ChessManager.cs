@@ -28,8 +28,17 @@ public class ChessManager {
             _ = Task.Run(GameWorkerAsync);
         }
     }
-    
-    
+
+
+    /// <summary>
+    /// Creates a new game with default settings (5 minutes for both playres, 2 seconds increment)
+    /// </summary>
+    /// <returns> The id number of the game created that can be used to further build the game.</returns>
+    public int CreateGame() {
+        return CreateGame(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(2));
+    }
+
+
     /// <summary>
     /// Registers a game builder object in internal storage. Returns the id to that builder.
     /// </summary>
