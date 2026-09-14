@@ -14,7 +14,7 @@ internal class Program {
     /// <param name="args">The command-line arguments.</param>
     public static void Main(string[] args) {
 
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions());
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.WebHost.UseUrls("http://0.0.0.0:5000");
         // builder.WebHost.UseUrls("http://192.168.1.1:5000");
         // builder.WebHost.UseUrls("http://192.168.1.226:5000");
