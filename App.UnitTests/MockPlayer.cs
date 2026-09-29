@@ -14,7 +14,10 @@ public class MockPlayer : IPlayer {
         // Return a dummy search result if needed, but for ChessManager tests 
         // we might just want to control the game loop.
         var cts = new CancellationTokenSource();
-        var move = new GeneratorWrapper(state).GetLegalMoves().First();
+        
+        var generator = new MoveGenerator();
+        var move = generator.GenerateMoves(state).GetLegalMoves().First();
+
         var task = Task.FromResult(new SearchResults { BestMove = move });
         return new SearchHandle(cts, task);
     }
