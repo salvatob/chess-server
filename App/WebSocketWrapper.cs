@@ -115,15 +115,15 @@ public class WebSocketWrapper : IWebSocketWrapper {
     /// <inheritdoc />
     public void Dispose() {
         Console.WriteLine($"[DEBUG_LOG] Dispose: Current state: {_socket.State}");
-        // Only signal if not already signaled by graceful close
-        _socketClosedTcs.TrySetResult();
         
-        // We should always dispose to release resources, 
-        // but if we are in the middle of a graceful close (CloseSent), 
-        // calling Dispose() might abort the connection before the client receives the close frame.
-        // However, Dispose() is meant to be the final cleanup.
-        // The real synchronization happens via WaitForCloseAsync().
-        _socket.Dispose();
+        _socketClosedTcs.TrySetResult();
+        if (_socket.State != WebSocketState.Aborted && _socket.State != WebSocketState.Closed) {
+            try {
+                _socket.Dispose();
+            } catch (ObjectDisposedException) {
+                // Ignore if the internal framework components are already disposed.
+            }
+        }
         Console.WriteLine("[DEBUG_LOG] Dispose: Socket disposed");
     }
 }
