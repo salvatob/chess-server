@@ -57,7 +57,7 @@ public class WebSocketWrapper : IWebSocketWrapper {
                     throw;
                 } catch (WebSocketException ex) {
                     Console.WriteLine($"[DEBUG_LOG] WaitMessageAsync: WebSocketException: {ex.Message}");
-                    break;
+                    throw new OperationCanceledException("The WebSocket connection was lost.", ex);
                 }
                 
                 if (result.MessageType == WebSocketMessageType.Close) {
