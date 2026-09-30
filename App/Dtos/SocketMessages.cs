@@ -66,10 +66,6 @@ public abstract class IncomingSocketMessage;
         /// The time black has remaining in milliseconds.
         /// </summary>
         public required long BlackTimeMs { get; set; }
-        /// <summary>
-        /// The last move played in LAN format.
-        /// </summary>
-        public string? LastMoveLAN { get; set; }
     }
 
     /// <summary>

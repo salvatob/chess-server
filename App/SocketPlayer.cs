@@ -49,8 +49,7 @@ public class SocketPlayer : IPlayer {
             await _socket.SendMessageAsync(new RequestMoveDto {
                 Fen = state.GetFen(),
                 WhiteTimeMs = timers.WhiteTimeMs,
-                BlackTimeMs = timers.BlackTimeMs,
-                LastMoveLAN = _moveHistory?.LastOrDefault().PrintLAN()
+                BlackTimeMs = timers.BlackTimeMs
             });
             
             MoveDtoMessage moveDtoMessage = await _socket.WaitMessageAsync<MoveDtoMessage>(cts.Token);
