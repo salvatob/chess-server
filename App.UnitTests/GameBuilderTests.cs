@@ -1,6 +1,4 @@
-using App;
-using ChessBotCore;
-using Xunit;
+using UnitTests.MockPlayers;
 
 namespace App.UnitTests;
 

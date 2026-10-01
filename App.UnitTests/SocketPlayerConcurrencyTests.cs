@@ -21,17 +21,17 @@ public class SocketPlayerConcurrencyTests {
         // Arrange
         var state = State.Initial;
         var timers = new Timers();
-        
+        var cts = new CancellationTokenSource();
         // Act
-        using var handle = _player.ChooseMoveAsync(state, timers);
+        var handle = _player.ChooseMoveAsync(state, timers, cts.Token);
         
         // Ensure it's running
         await Task.Delay(50);
         
-        handle.Cancel();
+        cts.Cancel();
         
         // Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(async () => await handle.Result);
+        await Assert.ThrowsAsync<TaskCanceledException>(async () => await handle);
         Assert.Contains(nameof(IWebSocketWrapper.WaitMessageAsync), _mockSocket.CallOrder);
     }
 
@@ -40,21 +40,21 @@ public class SocketPlayerConcurrencyTests {
         // Arrange
         var state = State.Initial;
         var timers = new Timers();
-        
+        var cts = new CancellationTokenSource();
         // Act
-        var handle1 = _player.ChooseMoveAsync(state, timers);
-        var handle2 = _player.ChooseMoveAsync(state, timers);
+        var handle1 = _player.ChooseMoveAsync(state, timers, cts.Token);
+        var handle2 = _player.ChooseMoveAsync(state, timers, cts.Token);
         
         // Give them a moment to start
         await Task.Delay(50);
 
         // Send move for handle 1
         _mockSocket.PushMessage(new MoveDtoMessage { Move = new IncomingMoveDto { From = "e2", To = "e4" } });
-        var result1 = await handle1.Result;
+        var result1 = await handle1;
         
         // Send move for handle 2
         _mockSocket.PushMessage(new MoveDtoMessage { Move = new IncomingMoveDto { From = "d2", To = "d4" } });
-        var result2 = await handle2.Result;
+        var result2 = await handle2;
 
         // Assert
         Assert.Equal("e2e4", result1.BestMove.PrintLAN());

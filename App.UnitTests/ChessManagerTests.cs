@@ -1,3 +1,5 @@
+using UnitTests.MockPlayers;
+
 namespace App.UnitTests;
 
 public class ChessManagerTests {
@@ -33,8 +35,8 @@ public class ChessManagerTests {
         // Let's give it a bit of time
         await Task.Delay(500);
 
-        Assert.True(white.Disposed);
-        Assert.True(black.Disposed);
+        Assert.True(white.IsDisposed);
+        Assert.True(black.IsDisposed);
     }
 
     [Fact]
@@ -61,19 +63,19 @@ public class ChessManagerTests {
         await Task.Delay(500);
         
         // Assert
-        Assert.False(white2.Disposed); 
+        Assert.False(white2.IsDisposed); 
         
         // Act: Release Game 1
         stuckPlayer.EndGame();
         
 
         // Let's wait a bit longer to be sure.
-        for (int i = 0; i < 20 && !white2.Disposed; i++) {
+        for (int i = 0; i < 20 && !white2.IsDisposed; i++) {
             await Task.Delay(200);
         }
         
         // Assert: Now Game 2 should have finished
-        Assert.True(white2.Disposed);
+        Assert.True(white2.IsDisposed);
     }
 
     [Theory]
@@ -101,13 +103,13 @@ public class ChessManagerTests {
         await Task.Delay(500);
         
         // Assert
-        Assert.True(throwingPlayer.Disposed);
+        Assert.True(throwingPlayer.IsDisposed);
         
         // Verify worker is still alive
         var (idNext, w2, _) = SetupGame(manager, MateInOneFen);
         manager.StartGame(idNext);
         await Task.Delay(500);
-        Assert.True(w2.Disposed);
+        Assert.True(w2.IsDisposed);
     }
 
     [Fact]

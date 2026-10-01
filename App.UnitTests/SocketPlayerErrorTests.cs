@@ -27,7 +27,7 @@ public class SocketPlayerErrorTests {
         
         // Act & Assert
         using var handle = _socketPlayer.ChooseMoveAsync(state, timers);
-        await Assert.ThrowsAsync<ArgumentException>(async () => await handle.Result);
+        await Assert.ThrowsAsync<ArgumentException>(async () => await handle);
     }
 
     [Fact]
@@ -35,12 +35,12 @@ public class SocketPlayerErrorTests {
         // Arrange
         var state = State.Initial;
         var timers = new Timers();
-        
+        var cts = new CancellationTokenSource();
         _mockSocket.PushMessage(new MoveDtoMessage { Move = null });
         
         // Act & Assert
-        using var handle = _socketPlayer.ChooseMoveAsync(state, timers);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await handle.Result);
+        var handle = _socketPlayer.ChooseMoveAsync(state, timers, cts.Token);
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await handle);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class SocketPlayerErrorTests {
         _mockSocket.TriggerWaitException(socketException);
         
         // Assert
-        var ex = await Assert.ThrowsAsync<Exception>(async () => await handle.Result);
+        var ex = await Assert.ThrowsAsync<Exception>(async () => await handle);
         Assert.Equal("Socket connection lost", ex.Message);
     }
 }
