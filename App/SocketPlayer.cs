@@ -39,9 +39,9 @@ public class SocketPlayer : IPlayer {
     public Task WaitForCloseAsync() => _socket.WaitForCloseAsync();
 
     /// <inheritdoc />
-    /// <exception cref="InvalidOperationException">Thrown when move data is missing from the message or the socket state is invalid.</exception>
-    /// <exception cref="OperationCanceledException">Thrown when the operation is canceled or the socket is closed.</exception>
-    public SearchHandle ChooseMoveAsync(State state, Timers timers) {
+    // /// <exception cref="InvalidOperationException">Thrown when move data is missing from the message or the socket state is invalid.</exception>
+    // /// <exception cref="OperationCanceledException">Thrown when the operation is canceled or the socket is closed.</exception>
+    public Task<SearchResults> ChooseMoveAsync(State state, Timers timers, CancellationToken ct=default) {
         // TODO no exception handling is really present here but it should
         var cts = new CancellationTokenSource();
 
@@ -69,7 +69,7 @@ public class SocketPlayer : IPlayer {
             return new SearchResults { BestMove = move };
         }, cts.Token);
 
-        return new SearchHandle(cts, task);
+        return task;
     }
     
     /// <inheritdoc />

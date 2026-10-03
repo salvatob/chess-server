@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\App\App.csproj" />
     <ProjectReference Include="..\..\ParallelChessBot\ChessBotCore\ChessBotCore.csproj" />
+    <ProjectReference Include="..\..\ParallelChessBot\UnitTests\UnitTests.csproj" />
   </ItemGroup>
 
 </Project>

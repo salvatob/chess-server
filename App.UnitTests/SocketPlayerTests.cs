@@ -86,7 +86,7 @@ public class SocketPlayerTests {
 
         // Act
         using var handle = _player.ChooseMoveAsync(state, timers);
-        var results = await handle.Result;
+        var results = await handle;
 
         // Assert
         // 1. Check RequestMoveDto was sent
