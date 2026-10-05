@@ -158,17 +158,20 @@ public class ChessManager {
             try {
                 await game.PlayAsync();
             }
+            catch (OperationCanceledException) {
+                Console.WriteLine("[DEBUG_LOG] Game enqueued was cancelled or player disconnected.");
+            }
             catch (Exception e) {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine($"[DEBUG_LOG] Error during game execution: {e}");
             }
             finally {
                 try {
                     game.Dispose();
                 }
                 catch (Exception e) {
-                    Console.Error.WriteLine(e);
+                    Console.Error.WriteLine($"[DEBUG_LOG] Error during game disposal: {e}");
                 }
             }
         }
-    } 
+    }
 }
