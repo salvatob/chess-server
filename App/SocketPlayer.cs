@@ -42,34 +42,39 @@ public class SocketPlayer : IPlayer {
     // /// <exception cref="InvalidOperationException">Thrown when move data is missing from the message or the socket state is invalid.</exception>
     // /// <exception cref="OperationCanceledException">Thrown when the operation is canceled or the socket is closed.</exception>
     public Task<SearchResults> ChooseMoveAsync(State state, Timers timers, CancellationToken ct=default) {
-        // TODO no exception handling is really present here but it should
-        var cts = new CancellationTokenSource();
+        // We use Task.Run to ensure it doesn't block the game loop, 
+        // and we link the cancellation token to the search.
+        return Task.Run(async () => {
+            try {
+                await _socket.SendMessageAsync(new RequestMoveDto {
+                    Fen = state.GetFen(),
+                    WhiteTimeMs = timers.WhiteTimeMs,
+                    BlackTimeMs = timers.BlackTimeMs
+                });
+                
+                MoveDtoMessage moveDtoMessage = await _socket.WaitMessageAsync<MoveDtoMessage>(ct);
+                
+                if (moveDtoMessage.Move == null)
+                    throw new InvalidOperationException("Move data is missing from message.");
 
-        var task = Task.Run(async () => {
-            await _socket.SendMessageAsync(new RequestMoveDto {
-                Fen = state.GetFen(),
-                WhiteTimeMs = timers.WhiteTimeMs,
-                BlackTimeMs = timers.BlackTimeMs
-            });
-            
-            MoveDtoMessage moveDtoMessage = await _socket.WaitMessageAsync<MoveDtoMessage>(cts.Token);
-            
-            if (moveDtoMessage.Move == null)
-                throw new InvalidOperationException("Move data is missing from message.");
-
-            // Convert string coordinates (e.g., "e2") to 1D integers
-            int from = Coordinates.FromString(moveDtoMessage.Move.From).To1D();
-            int to = Coordinates.FromString(moveDtoMessage.Move.To).To1D();
-            
-            // Create the engine's expected MoveDTO
-            MoveDTO engineMoveDto = new MoveDTO(from, to, moveDtoMessage.Move.Promotion);
-            
-            Move move = Move.FindFullMove(engineMoveDto, state);
-            
-            return new SearchResults { BestMove = move };
-        }, cts.Token);
-
-        return task;
+                // Convert string coordinates (e.g., "e2") to 1D integers
+                int from = Coordinates.FromString(moveDtoMessage.Move.From).To1D();
+                int to = Coordinates.FromString(moveDtoMessage.Move.To).To1D();
+                
+                // Create the engine's expected MoveDTO
+                MoveDTO engineMoveDto = new MoveDTO(from, to, moveDtoMessage.Move.Promotion);
+                
+                Move move = Move.FindFullMove(engineMoveDto, state);
+                
+                return new SearchResults { BestMove = move };
+            } catch (OperationCanceledException) {
+                // Connection lost or game aborted
+                throw;
+            } catch (Exception ex) {
+                // Wrap any other issues in a MoveException so ChessGame knows it's a player-level failure
+                throw new MoveException($"Failed to receive move: {ex.Message}");
+            }
+        }, ct);
     }
     
     /// <inheritdoc />
